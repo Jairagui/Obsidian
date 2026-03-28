@@ -1,0 +1,41 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f4f4f4;
+}
+
+.menu {
+  background-color: #333;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+  margin-right: 20px;
+  font-weight: bold;
+}
+
+.menu a:hover {
+  text-decoration: underline;
+}
+
+.galeria {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.tarjeta {
+  border: 1px solid black;
+  background-color: white;
+  padding: 15px;
+  width: 200px;
+}
+
+.valor-total {
+  color: green;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
