@@ -1,41 +1,257 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  background-color: #f4f4f4;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.menu {
-  background-color: #333;
-  padding: 15px;
+body {
+  font-family: Arial, sans-serif;
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/*  Navegacion principal  */
+.nav-principal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 50px;
+  background-color: #0a0a0a;
+  border-bottom: 1px solid #222;
+}
+
+.nav-logo a {
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: white;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.nav-links a {
+  color: #999;
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.nav-links a:hover {
+  color: white;
+}
+
+/* Botones que usamos en toda la app */
+.btn-secundario {
+  border: 1px solid white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  background: none;
+  color: white;
+  cursor: pointer;
+}
+
+.btn-primario {
+  background-color: white;
+  color: black !important;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+/*Ventanas para Login y Registro*/
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #0a0a0a;
+  border: 1px solid #333;
+  padding: 40px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+}
+
+.btn-cerrar {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+  color: #aaa;
+  font-size: 14px;
+}
+
+.form-group input, .form-group select {
+  padding: 10px;
+  background-color: #000;
+  border: 1px solid #333;
+  color: white;
+  border-radius: 5px;
+}
+
+.mensaje-error {
+  color: #ff4c4c;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Pagina de Inicio */
+.hero-container {
+  text-align: center;
+  padding: 100px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero-container h1 {
+  font-size: 60px;
   margin-bottom: 20px;
 }
 
-.menu a {
-  color: white;
-  text-decoration: none;
-  margin-right: 20px;
-  font-weight: bold;
+.hero-container p {
+  color: #888;
+  font-size: 20px;
+  margin-bottom: 40px;
+  line-height: 1.5;
 }
 
-.menu a:hover {
-  text-decoration: underline;
+.info-cards {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding: 60px 20px;
 }
 
-.galeria {
+.card {
+  width: 300px;
+  padding: 40px 20px;
+  background-color: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 10px;
+  text-align: center;
+}
+
+/* Boveda */
+.toolbar {
   display: flex;
   gap: 15px;
-  flex-wrap: wrap;
-}
-
-.tarjeta {
-  border: 1px solid black;
-  background-color: white;
+  margin-bottom: 30px;
+  background-color: #0a0a0a;
   padding: 15px;
-  width: 200px;
+  border-radius: 10px;
+  border: 1px solid #222;
 }
 
-.valor-total {
-  color: green;
-  font-size: 1.2rem;
+.input-buscar, .select-filtro {
+  padding: 10px;
+  background-color: #000;
+  border: 1px solid #333;
+  color: white;
+  border-radius: 5px;
+  flex: 1;
+}
+
+.btn-guardar {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
   font-weight: bold;
+  cursor: pointer;
+}
+
+.grid-articulos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-top: 20px;
+}
+
+.item-card {
+  background-color: #0a0a0a;
+  border: 1px solid #222;
+  padding: 20px;
+  border-radius: 10px;
+  width: 250px;
+  position: relative;
+}
+
+.item-card h3 {
+  margin-bottom: 10px;
+}
+
+.item-card p {
+  color: #999;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.precio-tag {
+  color: #fff;
+  font-weight: bold;
+  display: block;
+  margin-top: 15px;
+}
+
+.btn-eliminar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #ff4c4c;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Tabla del Admin  */
+.tabla-admin {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.tabla-admin th, .tabla-admin td {
+  border: 1px solid #333;
+  padding: 15px;
+  text-align: left;
+}
+
+.tabla-admin th {
+  background-color: #111;
+  color: #aaa;
 }
