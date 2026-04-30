@@ -3,6 +3,7 @@ import User from "../models/User";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+// 🔐 REGISTER
 export const register = async (req: Request, res: Response) => {
     try {
         const { name, email, password } = req.body;
@@ -28,6 +29,7 @@ export const register = async (req: Request, res: Response) => {
     }
 };
 
+// 🔑 LOGIN
 export const login = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
@@ -60,4 +62,16 @@ export const login = async (req: Request, res: Response) => {
     } catch (error) {
         res.status(500).json({ msg: "Error en login" });
     }
+};
+
+export const getMe = (req: any, res: Response) => {
+    res.json({
+        msg: "Acceso permitido",
+        user: req.user
+    });
+};
+
+// 🚪 LOGOUT
+export const logout = (req: Request, res: Response) => {
+    res.json({ msg: "Logout exitoso" });
 };
