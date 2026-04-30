@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/User";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import { generateToken } from "../utils/generateToken";
 
 // REGISTER
 export const register = async (req: Request, res: Response) => {
@@ -29,7 +29,7 @@ export const register = async (req: Request, res: Response) => {
     }
 };
 
-//  LOGIN
+// LOGIN
 export const login = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
@@ -44,11 +44,7 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({ msg: "Credenciales incorrectas" });
         }
 
-        const token = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_SECRET as string,
-            { expiresIn: "1d" }
-        );
+        const token = generateToken(user);
 
         res.json({
             token,
@@ -64,14 +60,22 @@ export const login = async (req: Request, res: Response) => {
     }
 };
 
-export const getMe = (req: any, res: Response) => {
-    res.json({
-        msg: "Acceso permitido",
-        user: req.user
-    });
+// GET ME
+export const getMe = async (req: any, res: Response) => {
+    try {
+        const user = await User.findById(req.user.id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ msg: "Usuario no encontrado" });
+        }
+
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ msg: "Error obteniendo usuario" });
+    }
 };
 
-//  LOGOUT
+// LOGOUT
 export const logout = (req: Request, res: Response) => {
     res.json({ msg: "Logout exitoso" });
 };
