@@ -3,7 +3,7 @@ import User from "../models/User";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-// 🔐 REGISTER
+// REGISTER
 export const register = async (req: Request, res: Response) => {
     try {
         const { name, email, password } = req.body;
@@ -29,7 +29,7 @@ export const register = async (req: Request, res: Response) => {
     }
 };
 
-// 🔑 LOGIN
+//  LOGIN
 export const login = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
@@ -71,7 +71,7 @@ export const getMe = (req: any, res: Response) => {
     });
 };
 
-// 🚪 LOGOUT
+//  LOGOUT
 export const logout = (req: Request, res: Response) => {
     res.json({ msg: "Logout exitoso" });
 };
