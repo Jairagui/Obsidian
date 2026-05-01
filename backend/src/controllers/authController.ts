@@ -23,7 +23,18 @@ export const register = async (req: Request, res: Response) => {
 
         await user.save();
 
-        res.status(201).json({ msg: "Usuario registrado" });
+        const token = generateToken(user);
+
+        res.status(201).json({
+            msg: "Usuario registrado",
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
     } catch (error) {
         res.status(500).json({ msg: "Error en registro" });
     }
@@ -36,7 +47,12 @@ export const login = async (req: Request, res: Response) => {
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ msg: "Usuario no existe" });
+            return res.status(400).json({ msg: "Credenciales incorrectas" });
+        }
+
+        // si se registro con google no tiene password
+        if (!user.password) {
+            return res.status(400).json({ msg: "Esta cuenta usa Google para iniciar sesion" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);

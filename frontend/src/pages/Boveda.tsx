@@ -2,16 +2,14 @@
 import { useState } from 'react';
 import { useBoveda } from '../hooks/useBoveda';
 import { CartaArticulo } from '../components/CartaArticulo';
-import type { Articulo } from '../interfaces/Articulo';
 
 export const Boveda = () => {
     //  hook que hicimos
     const {
-        articulos, setArticulos,
         busqueda, setBusqueda,
         categoriaSelect, setCategoriaSelect,
         estaCargando, articulosFiltrados,
-        borrarArticulo, totalEstimado
+        borrarArticulo, agregarArticulo, totalEstimado
     } = useBoveda();
 
     // Para mostrar u ocultar el form de agregar
@@ -23,29 +21,25 @@ export const Boveda = () => {
     const [nuevaCategoria, setNuevaCategoria] = useState('Sneakers');
     const [nuevoPrecio, setNuevoPrecio] = useState('');
 
-    // Cuando le dan click  aguradar
-    const manejarSubmit = (e: React.FormEvent) => {
+    // Cuando le dan click a guardar
+    const manejarSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // hacemo el prductoq ue nos dio el usuario
-        const nuevoObj: Articulo = {
-            id: Date.now(),
+        const exito = await agregarArticulo({
             nombre: nuevoNombre,
             marca: nuevaMarca,
             categoria: nuevaCategoria,
             anio: new Date().getFullYear(),
             condicion: "Nuevo",
             precio: Number(nuevoPrecio)
-        };
+        });
 
-        // arreglo de articulos
-        setArticulos([...articulos, nuevoObj]);
-
-        // Limpiamos la pantalla
-        setMostrarForm(false);
-        setNuevoNombre('');
-        setNuevaMarca('');
-        setNuevoPrecio('');
+        if (exito) {
+            setMostrarForm(false);
+            setNuevoNombre('');
+            setNuevaMarca('');
+            setNuevoPrecio('');
+        }
     };
 
     return (
@@ -97,7 +91,6 @@ export const Boveda = () => {
                 </div>
             )}
 
-            {/* Manejo de estado de carga */}
             {estaCargando ? (
                 <p style={{ textAlign: 'center', color: '#888', marginTop: '50px' }}>Cargando inventario...</p>
             ) : (
@@ -106,7 +99,7 @@ export const Boveda = () => {
                         <p style={{ color: '#888' }}>No hay resultados.</p>
                     ) : (
                         articulosFiltrados.map((item) => (
-                            <CartaArticulo key={item.id} articulo={item} alBorrar={borrarArticulo} />
+                            <CartaArticulo key={item._id} articulo={item} alBorrar={borrarArticulo} />
                         ))
                     )}
                 </div>

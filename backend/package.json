@@ -4,7 +4,8 @@
   "main": "src/app.ts",
   "scripts": {
     "dev": "ts-node-dev src/app.ts",
-    "start": "ts-node src/app.ts"
+    "start": "ts-node src/app.ts",
+    "seed": "ts-node src/seed.ts"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -14,7 +15,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.0",
     "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0"
+    "passport-google-oauth20": "^2.0.0",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

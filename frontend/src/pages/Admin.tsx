@@ -1,13 +1,53 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-// lisat de mientasr
-const usuariosBD = [
-    { id: 1, nombre: "Jair Ernesto", correo: "jair@iteso.mx", rol: "Coleccionista" },
-    { id: 2, nombre: "Juan Pablo", correo: "jpablo@iteso.mx", rol: "Coleccionista" },
-    { id: 3, nombre: "Profe Admin", correo: "admin@obsidian.com", rol: "Administrador" }
-];
+import { API_URL, headersConToken } from '../helpers/authHelper';
 
 export const Admin = () => {
+    const [usuarios, setUsuarios] = useState<any[]>([]);
+    const [cargando, setCargando] = useState(true);
+
+    useEffect(() => {
+        cargarUsuarios();
+    }, []);
+
+    const cargarUsuarios = async () => {
+        try {
+            const resp = await fetch(`${API_URL}/admin/usuarios`, {
+                headers: headersConToken()
+            });
+            if (resp.ok) {
+                setUsuarios(await resp.json());
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const eliminarUsuario = async (id: string, nombre: string) => {
+        if (!confirm(`¿Seguro que quieres eliminar a ${nombre}? Se borrarán también todos sus artículos.`)) {
+            return;
+        }
+
+        try {
+            const resp = await fetch(`${API_URL}/admin/usuarios/${id}`, {
+                method: 'DELETE',
+                headers: headersConToken()
+            });
+
+            if (resp.ok) {
+                // quitarlo de la lista
+                setUsuarios(prev => prev.filter(u => u._id !== id));
+            } else {
+                const datos = await resp.json();
+                alert(datos.msg || 'Error al eliminar');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
     return (
         <div style={{ padding: '50px', maxWidth: '900px', margin: '0 auto' }}>
 
@@ -18,30 +58,55 @@ export const Admin = () => {
 
             <p style={{ color: '#888', marginBottom: '30px' }}>Usuarios registrados en la plataforma.</p>
 
-            <table className="tabla-admin">
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Rol</th>
-                </tr>
-                </thead>
-                <tbody>
-                {usuariosBD.map((user) => (
-                    <tr key={user.id}>
-                        <td>#{user.id}</td>
-                        <td>{user.nombre}</td>
-                        <td>{user.correo}</td>
-                        <td>
-                <span style={{ backgroundColor: '#222', padding: '5px 10px', borderRadius: '5px', fontSize: '12px' }}>
-                  {user.rol}
-                </span>
-                        </td>
+            {cargando ? (
+                <p style={{ color: '#888' }}>Cargando...</p>
+            ) : (
+                <table className="tabla-admin">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Artículos</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
                     </tr>
-                ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {usuarios.map((user) => (
+                        <tr key={user._id}>
+                            <td>#{user._id.slice(-5)}</td>
+                            <td>{user.name}</td>
+                            <td>{user.email}</td>
+                            <td>{user.totalArticulos || 0}</td>
+                            <td>
+                <span style={{ backgroundColor: '#222', padding: '5px 10px', borderRadius: '5px', fontSize: '12px' }}>
+                  {user.role === 'admin' ? 'Administrador' : 'Coleccionista'}
+                </span>
+                            </td>
+                            <td>
+                                {user.role !== 'admin' && (
+                                    <button
+                                        onClick={() => eliminarUsuario(user._id, user.name)}
+                                        style={{
+                                            background: 'none',
+                                            border: '1px solid #ff4c4c',
+                                            color: '#ff4c4c',
+                                            padding: '5px 12px',
+                                            borderRadius: '5px',
+                                            cursor: 'pointer',
+                                            fontSize: '12px'
+                                        }}
+                                    >
+                                        Eliminar
+                                    </button>
+                                )}
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 };

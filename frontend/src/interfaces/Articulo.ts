@@ -1,7 +1,7 @@
 // src/interfaces/Articulo.ts
-// el modelod el auto autocompletado
+// el modelo del articulo
 export interface Articulo {
-    id: number;
+    _id: string;
     nombre: string;
     marca: string;
     categoria: string;

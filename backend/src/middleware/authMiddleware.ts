@@ -31,9 +31,14 @@ export const verifyToken = (
     }
 };
 
-export const getMe = (req: any, res: Response) => {
-    res.json({
-        msg: "Acceso permitido",
-        user: req.user
-    });
+// middleware para checar si es admin
+export const esAdmin = (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+) => {
+    if (req.user?.role !== "admin") {
+        return res.status(403).json({ msg: "Acceso solo para admin" });
+    }
+    next();
 };

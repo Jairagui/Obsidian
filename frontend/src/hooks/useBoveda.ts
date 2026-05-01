@@ -1,13 +1,10 @@
 // src/hooks/useBoveda.ts
 import { useState, useEffect } from 'react';
+import { io, Socket } from 'socket.io-client';
 import type { Articulo } from '../interfaces/Articulo';
+import { API_URL, headersConToken, obtenerUsuario } from '../helpers/authHelper';
 
-// Datos de mientars
-const inventarioInicial: Articulo[] = [
-    { id: 1, nombre: "Jordan 1 Retro", marca: "Nike", categoria: "Sneakers", anio: 2015, condicion: "Nuevo", precio: 3500 },
-    { id: 2, nombre: "Vader Funko Pop", marca: "Funko", categoria: "Figuras", anio: 2020, condicion: "Con caja", precio: 600 },
-    { id: 3, nombre: "Casio G-Shock", marca: "Casio", categoria: "Relojes", anio: 2018, condicion: "Usado", precio: 2200 }
-];
+const SOCKET_URL = 'http://localhost:3000';
 
 // manejos de estados
 export const useBoveda = () => {
@@ -15,45 +12,114 @@ export const useBoveda = () => {
     const [busqueda, setBusqueda] = useState('');
     const [categoriaSelect, setCategoriaSelect] = useState('Todas');
     const [estaCargando, setEstaCargando] = useState(true);
+    const [socket, setSocket] = useState<Socket | null>(null);
 
-    // api momentanea
+    const usuario = obtenerUsuario();
+
+    // conectar socket y cargar articulos
     useEffect(() => {
-        setEstaCargando(true);
-        setTimeout(() => {
-            setArticulos(inventarioInicial);
-            setEstaCargando(false);
-        }, 1500);
+        const nuevoSocket = io(SOCKET_URL);
+        setSocket(nuevoSocket);
+
+        if (usuario?.id) {
+            nuevoSocket.on('connect', () => {
+                nuevoSocket.emit('unirse_sala', usuario.id);
+            });
+        }
+
+        // traer articulos del backend
+        cargarArticulos();
+
+        return () => { nuevoSocket.disconnect(); };
     }, []);
 
-    // Funcion para eliminar filtro  juanpa
-    const borrarArticulo = (id: number) => {
-        const listaActualizada = articulos.filter(item => item.id !== id);
-        setArticulos(listaActualizada);
+    // escuchar socket para tiempo real
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on('articulo_agregado', (nuevo: Articulo) => {
+            setArticulos(prev => {
+                if (prev.find(a => a._id === nuevo._id)) return prev;
+                return [...prev, nuevo];
+            });
+        });
+
+        socket.on('articulo_borrado', (idBorrado: string) => {
+            setArticulos(prev => prev.filter(a => a._id !== idBorrado));
+        });
+
+        return () => {
+            socket.off('articulo_agregado');
+            socket.off('articulo_borrado');
+        };
+    }, [socket]);
+
+    const cargarArticulos = async () => {
+        setEstaCargando(true);
+        try {
+            const resp = await fetch(`${API_URL}/articulos`, {
+                headers: headersConToken()
+            });
+            if (resp.ok) {
+                const datos = await resp.json();
+                setArticulos(datos);
+            }
+        } catch (error) {
+            console.error('Error cargando articulos:', error);
+        } finally {
+            setEstaCargando(false);
+        }
+    };
+
+    // agregar articulo por la api
+    const agregarArticulo = async (nuevo: Omit<Articulo, '_id'>) => {
+    try {
+        const resp = await fetch(`${API_URL}/articulos`, {
+            method: 'POST',
+            headers: headersConToken(),
+            body: JSON.stringify(nuevo)
+        });
+        if (resp.ok) {
+            await resp.json();
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error al agregar:', error);
+        return false;
+    }
+};
+
+    // Funcion para eliminar
+    const borrarArticulo = async (id: string) => {
+        try {
+            const resp = await fetch(`${API_URL}/articulos/${id}`, {
+                method: 'DELETE',
+                headers: headersConToken()
+            });
+            if (resp.ok) {
+                setArticulos(prev => prev.filter(item => item._id !== id));
+            }
+        } catch (error) {
+            console.error('Error al borrar:', error);
+        }
     };
 
     // Buscador y filtros combinados
     const articulosFiltrados = articulos.filter((item) => {
-        // aqui junap vemos si si esta alguna letra que escrbio el usaruio
         const coincideNombre = item.nombre.toLowerCase().includes(busqueda.toLowerCase());
-        // Revisamos si la categoria es la misma que la del select
         const coincideCategoria = categoriaSelect === 'Todas' || item.categoria === categoriaSelect;
-
         return coincideNombre && coincideCategoria;
     });
 
-    // Sumamos los precios usando
+    // Sumamos los precios
     const totalEstimado = articulosFiltrados.reduce((acumulado, item) => acumulado + item.precio, 0);
 
     return {
-        articulos,
-        setArticulos,
-        busqueda,
-        setBusqueda,
-        categoriaSelect,
-        setCategoriaSelect,
-        estaCargando,
-        articulosFiltrados,
-        borrarArticulo,
-        totalEstimado
+        articulos, setArticulos,
+        busqueda, setBusqueda,
+        categoriaSelect, setCategoriaSelect,
+        estaCargando, articulosFiltrados,
+        borrarArticulo, agregarArticulo, totalEstimado
     };
 };

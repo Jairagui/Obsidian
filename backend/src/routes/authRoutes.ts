@@ -13,24 +13,24 @@ router.post("/login", login);
 router.get("/me", verifyToken, getMe);
 router.post("/logout", logout);
 
-// Google Auth - iniciar
+// Google Auth iniciar
 router.get(
     "/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-// Google Auth - callback
+// Google Auth - callback (google nos regresa aqui)
 router.get(
     "/google/callback",
-    passport.authenticate("google", { session: false }),
+    passport.authenticate("google", { session: false, failureRedirect: "/" }),
     (req: any, res) => {
         const token = generateToken(req.user);
+        const frontUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
-        res.json({
-            msg: "Login con Google exitoso",
-            token,
-            user: req.user
-        });
+        // redirigimos al frontend con el token en la url
+        res.redirect(
+            `${frontUrl}/auth/google/callback?token=${token}&name=${req.user.name}&role=${req.user.role}&id=${req.user._id}`
+        );
     }
 );
 

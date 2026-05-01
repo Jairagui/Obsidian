@@ -3,12 +3,17 @@ import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { Landing } from '../pages/Landing';
 import { Boveda } from '../pages/Boveda';
 import { Admin } from '../pages/Admin';
+import { GoogleCallback } from '../pages/GoogleCallback';
+import {
+    API_URL, guardarSesion, cerrarSesionHelper,
+    obtenerUsuario, obtenerRol, haySesionActiva
+} from '../helpers/authHelper';
 
 //Componente para proteger las rutas
 const RutaProtegida = ({ children, ocupasAdmin = false }: { children: React.ReactNode, ocupasAdmin?: boolean }) => {
-    const rol = localStorage.getItem('rol_guardado');
+    const rol = obtenerRol();
 
-    if (!rol) {
+    if (!haySesionActiva()) {
         return <Navigate to="/" />;
     }
 
@@ -21,17 +26,19 @@ const RutaProtegida = ({ children, ocupasAdmin = false }: { children: React.Reac
 
 export const AppRouter = () => {
     const navegar = useNavigate();
-    const rolActual = localStorage.getItem('rol_guardado');
+    const usuario = obtenerUsuario();
+    const rolActual = obtenerRol();
 
     const [verLogin, setVerLogin] = useState(false);
     const [verRegistro, setVerRegistro] = useState(false);
 
+    const [nombre, setNombre] = useState('');
     const [correo, setCorreo] = useState('');
     const [password, setPassword] = useState('');
     const [confirmarPass, setConfirmarPass] = useState('');
     const [errorValidacion, setErrorValidacion] = useState('');
 
-    const iniciarSesion = (e: React.FormEvent) => {
+    const iniciarSesion = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (correo === '' || password === '') {
@@ -39,19 +46,37 @@ export const AppRouter = () => {
             return;
         }
 
-        if (correo === 'admin@obsidian.com') {
-            localStorage.setItem('rol_guardado', 'admin');
-            navegar('/admin');
-        } else {
-            localStorage.setItem('rol_guardado', 'usuario');
-            navegar('/boveda');
-        }
+        try {
+            const resp = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: correo, password })
+            });
 
-        setVerLogin(false);
-        setErrorValidacion('');
+            const datos = await resp.json();
+
+            if (!resp.ok) {
+                setErrorValidacion(datos.msg || 'Error al iniciar sesion');
+                return;
+            }
+
+            guardarSesion(datos.token, datos.user);
+            setVerLogin(false);
+            setErrorValidacion('');
+
+            if (datos.user.role === 'admin') {
+                navegar('/admin');
+            } else {
+                navegar('/boveda');
+            }
+            window.location.reload();
+
+        } catch (error) {
+            setErrorValidacion('No se pudo conectar al servidor');
+        }
     };
 
-    const crearCuenta = (e: React.FormEvent) => {
+    const crearCuenta = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (password !== confirmarPass) {
@@ -64,15 +89,38 @@ export const AppRouter = () => {
             return;
         }
 
-        alert('Cuenta creada exitosamente.');
-        setVerRegistro(false);
-        setErrorValidacion('');
-        setVerLogin(true);
+        try {
+            const resp = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: nombre, email: correo, password })
+            });
+
+            const datos = await resp.json();
+
+            if (!resp.ok) {
+                setErrorValidacion(datos.msg || 'Error al registrarse');
+                return;
+            }
+
+            alert('Cuenta creada exitosamente.');
+            setVerRegistro(false);
+            setErrorValidacion('');
+            setVerLogin(true);
+
+        } catch (error) {
+            setErrorValidacion('No se pudo conectar al servidor');
+        }
+    };
+
+    const loginConGoogle = () => {
+        window.location.href = `${API_URL}/auth/google`;
     };
 
     const cerrarSesion = () => {
-        localStorage.removeItem('rol_guardado');
+        cerrarSesionHelper();
         navegar('/');
+        window.location.reload();
     };
 
     return (
@@ -85,12 +133,17 @@ export const AppRouter = () => {
                 <div className="nav-links">
                     {rolActual === 'admin' ? (
                         <Link to="/admin">Panel Admin</Link>
-                    ) : (
+                    ) : haySesionActiva() ? (
                         <Link to="/boveda">Bóveda</Link>
-                    )}
+                    ) : null}
 
-                    {rolActual ? (
-                        <button onClick={cerrarSesion} className="btn-secundario">Salir</button>
+                    {haySesionActiva() ? (
+                        <>
+                            <span style={{ color: '#888', fontSize: '14px' }}>
+                                Hola, {usuario?.name || 'Usuario'}
+                            </span>
+                            <button onClick={cerrarSesion} className="btn-secundario">Salir</button>
+                        </>
                     ) : (
                         <>
                             <button onClick={() => {setVerLogin(true); setErrorValidacion('');}} className="btn-secundario">Login</button>
@@ -112,7 +165,7 @@ export const AppRouter = () => {
                         <form onSubmit={iniciarSesion}>
                             <div className="form-group">
                                 <label>Correo Electrónico</label>
-                                <input type="email" placeholder="admin@obsidian.com  para el admin" onChange={(e) => setCorreo(e.target.value)} required />
+                                <input type="email" placeholder="tu@correo.com" onChange={(e) => setCorreo(e.target.value)} required />
                             </div>
                             <div className="form-group">
                                 <label>Contraseña</label>
@@ -120,6 +173,20 @@ export const AppRouter = () => {
                             </div>
                             <button type="submit" className="btn-primario" style={{ width: '100%', marginTop: '10px' }}>Entrar</button>
                         </form>
+
+                        <div style={{ textAlign: 'center', margin: '15px 0' }}>
+                            <span style={{ color: '#666', fontSize: '14px' }}>— o —</span>
+                        </div>
+                        <button onClick={loginConGoogle} className="btn-secundario"
+                            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Continuar con Google
+                        </button>
                     </div>
                 </div>
             )}
@@ -135,8 +202,12 @@ export const AppRouter = () => {
 
                         <form onSubmit={crearCuenta}>
                             <div className="form-group">
+                                <label>Nombre</label>
+                                <input type="text" onChange={(e) => setNombre(e.target.value)} required />
+                            </div>
+                            <div className="form-group">
                                 <label>Correo Electrónico</label>
-                                <input type="email" required />
+                                <input type="email" onChange={(e) => setCorreo(e.target.value)} required />
                             </div>
                             <div className="form-group">
                                 <label>Contraseña</label>
@@ -144,11 +215,24 @@ export const AppRouter = () => {
                             </div>
                             <div className="form-group">
                                 <label>Confirmar Contraseña</label>
-                                {/* Aqui estaba el error. Ya dice setConfirmarPass */}
                                 <input type="password" onChange={(e) => setConfirmarPass(e.target.value)} required />
                             </div>
                             <button type="submit" className="btn-primario" style={{ width: '100%', marginTop: '10px' }}>Registrarse</button>
                         </form>
+
+                        <div style={{ textAlign: 'center', margin: '15px 0' }}>
+                            <span style={{ color: '#666', fontSize: '14px' }}>— o —</span>
+                        </div>
+                        <button onClick={loginConGoogle} className="btn-secundario"
+                            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Registrarse con Google
+                        </button>
                     </div>
                 </div>
             )}
@@ -158,6 +242,7 @@ export const AppRouter = () => {
                 <Route path="/" element={<Landing />} />
                 <Route path="/boveda" element={<RutaProtegida><Boveda /></RutaProtegida>} />
                 <Route path="/admin" element={<RutaProtegida ocupasAdmin={true}><Admin /></RutaProtegida>} />
+                <Route path="/auth/google/callback" element={<GoogleCallback />} />
             </Routes>
         </div>
     );
