@@ -1,27 +1,24 @@
-// src/pages/Boveda.tsx
 import { useState } from 'react';
 import { useBoveda } from '../hooks/useBoveda';
 import { CartaArticulo } from '../components/CartaArticulo';
 
 export const Boveda = () => {
-    //  hook que hicimos
     const {
-        busqueda, setBusqueda,
+        articulos, busqueda, setBusqueda,
         categoriaSelect, setCategoriaSelect,
         estaCargando, articulosFiltrados,
-        borrarArticulo, agregarArticulo, totalEstimado
+        borrarArticulo, agregarArticulo, editarArticulo,
+        vaciarBoveda, totalEstimado,
+        conteoSneakers, conteoRelojes, conteoFiguras
     } = useBoveda();
 
-    // Para mostrar u ocultar el form de agregar
     const [mostrarForm, setMostrarForm] = useState(false);
 
-    // Estados para los inputs del formulario
     const [nuevoNombre, setNuevoNombre] = useState('');
     const [nuevaMarca, setNuevaMarca] = useState('');
     const [nuevaCategoria, setNuevaCategoria] = useState('Sneakers');
     const [nuevoPrecio, setNuevoPrecio] = useState('');
 
-    // Cuando le dan click a guardar
     const manejarSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -42,6 +39,19 @@ export const Boveda = () => {
         }
     };
 
+    // vaciar con doble confirmacion
+    const manejarVaciar = () => {
+        if (articulos.length === 0) {
+            alert('No hay artículos que eliminar');
+            return;
+        }
+        if (confirm('¿Seguro que quieres eliminar TODOS los artículos?')) {
+            if (confirm('Esta acción no se puede deshacer. ¿Continuar?')) {
+                vaciarBoveda();
+            }
+        }
+    };
+
     return (
         <div style={{ padding: '50px' }}>
 
@@ -49,7 +59,27 @@ export const Boveda = () => {
                 <h2>Mi Colección Personal</h2>
                 <div style={{ background: '#111', padding: '10px 20px', borderRadius: '10px', border: '1px solid #333' }}>
                     <span style={{ color: '#888', fontSize: '14px' }}>Valor Mostrado: </span>
-                    <span style={{ fontWeight: 'bold' }}>${totalEstimado} MXN</span>
+                    <span style={{ fontWeight: 'bold' }}>${totalEstimado.toLocaleString()} MXN</span>
+                </div>
+            </div>
+
+            {/* Mini estadisticas */}
+            <div className="resumen-stats">
+                <div className="stat-item">
+                    <span className="stat-numero">{articulos.length}</span>
+                    <span className="stat-label">Total</span>
+                </div>
+                <div className="stat-item">
+                    <span className="stat-numero" style={{ color: '#2563eb' }}>{conteoSneakers}</span>
+                    <span className="stat-label">Sneakers</span>
+                </div>
+                <div className="stat-item">
+                    <span className="stat-numero" style={{ color: '#22c55e' }}>{conteoRelojes}</span>
+                    <span className="stat-label">Relojes</span>
+                </div>
+                <div className="stat-item">
+                    <span className="stat-numero" style={{ color: '#a855f7' }}>{conteoFiguras}</span>
+                    <span className="stat-label">Figuras</span>
                 </div>
             </div>
 
@@ -71,6 +101,10 @@ export const Boveda = () => {
 
                 <button className="btn-primario" onClick={() => setMostrarForm(!mostrarForm)}>
                     {mostrarForm ? 'Cancelar' : '+ Añadir'}
+                </button>
+
+                <button className="btn-vaciar" onClick={manejarVaciar}>
+                    Vaciar todo
                 </button>
             </div>
 
@@ -99,12 +133,21 @@ export const Boveda = () => {
                         <p style={{ color: '#888' }}>No hay resultados.</p>
                     ) : (
                         articulosFiltrados.map((item) => (
-                            <CartaArticulo key={item._id} articulo={item} alBorrar={borrarArticulo} />
+                            <CartaArticulo
+                                key={item._id}
+                                articulo={item}
+                                alBorrar={borrarArticulo}
+                                alEditar={editarArticulo}
+                            />
                         ))
                     )}
                 </div>
             )}
 
+            {/* Footer */}
+            <div className="footer">
+                <span>Obsidian</span> — Bóveda Digital para Coleccionistas © {new Date().getFullYear()}
+            </div>
         </div>
     );
 };

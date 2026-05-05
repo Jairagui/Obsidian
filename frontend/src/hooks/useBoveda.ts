@@ -1,4 +1,3 @@
-// src/hooks/useBoveda.ts
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import type { Articulo } from '../interfaces/Articulo';
@@ -27,7 +26,6 @@ export const useBoveda = () => {
             });
         }
 
-        // traer articulos del backend
         cargarArticulos();
 
         return () => { nuevoSocket.disconnect(); };
@@ -48,9 +46,17 @@ export const useBoveda = () => {
             setArticulos(prev => prev.filter(a => a._id !== idBorrado));
         });
 
+        // cuando se edita un articulo
+        socket.on('articulo_actualizado', (actualizado: Articulo) => {
+            setArticulos(prev =>
+                prev.map(a => a._id === actualizado._id ? actualizado : a)
+            );
+        });
+
         return () => {
             socket.off('articulo_agregado');
             socket.off('articulo_borrado');
+            socket.off('articulo_actualizado');
         };
     }, [socket]);
 
@@ -71,26 +77,33 @@ export const useBoveda = () => {
         }
     };
 
-    // agregar articulo por la api
+    // agregar articulo
     const agregarArticulo = async (nuevo: Omit<Articulo, '_id'>) => {
-    try {
-        const resp = await fetch(`${API_URL}/articulos`, {
-            method: 'POST',
-            headers: headersConToken(),
-            body: JSON.stringify(nuevo)
-        });
-        if (resp.ok) {
-            await resp.json();
-            return true;
+        try {
+            const resp = await fetch(`${API_URL}/articulos`, {
+                method: 'POST',
+                headers: headersConToken(),
+                body: JSON.stringify(nuevo)
+            });
+            if (resp.ok) {
+                await resp.json();
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error al agregar:', error);
+            return false;
         }
-        return false;
-    } catch (error) {
-        console.error('Error al agregar:', error);
-        return false;
-    }
-};
+    };
 
-    // Funcion para eliminar
+    // editar un articulo (se llama desde la CartaArticulo)
+    const editarArticulo = (actualizado: Articulo) => {
+        setArticulos(prev =>
+            prev.map(a => a._id === actualizado._id ? actualizado : a)
+        );
+    };
+
+    // borrar un articulo
     const borrarArticulo = async (id: string) => {
         try {
             const resp = await fetch(`${API_URL}/articulos/${id}`, {
@@ -105,6 +118,21 @@ export const useBoveda = () => {
         }
     };
 
+    // vaciar toda la boveda
+    const vaciarBoveda = async () => {
+        try {
+            const resp = await fetch(`${API_URL}/articulos/vaciar`, {
+                method: 'DELETE',
+                headers: headersConToken()
+            });
+            if (resp.ok) {
+                setArticulos([]);
+            }
+        } catch (error) {
+            console.error('Error al vaciar:', error);
+        }
+    };
+
     // Buscador y filtros combinados
     const articulosFiltrados = articulos.filter((item) => {
         const coincideNombre = item.nombre.toLowerCase().includes(busqueda.toLowerCase());
@@ -115,11 +143,18 @@ export const useBoveda = () => {
     // Sumamos los precios
     const totalEstimado = articulosFiltrados.reduce((acumulado, item) => acumulado + item.precio, 0);
 
+    // contar por categoria
+    const conteoSneakers = articulos.filter(a => a.categoria === 'Sneakers').length;
+    const conteoRelojes = articulos.filter(a => a.categoria === 'Relojes').length;
+    const conteoFiguras = articulos.filter(a => a.categoria === 'Figuras').length;
+
     return {
         articulos, setArticulos,
         busqueda, setBusqueda,
         categoriaSelect, setCategoriaSelect,
         estaCargando, articulosFiltrados,
-        borrarArticulo, agregarArticulo, totalEstimado
+        borrarArticulo, agregarArticulo, editarArticulo,
+        vaciarBoveda, totalEstimado,
+        conteoSneakers, conteoRelojes, conteoFiguras
     };
 };

@@ -5,6 +5,7 @@ import { verifyToken, esAdmin, AuthRequest } from "../middleware/authMiddleware"
 
 const router = Router();
 
+// GET - traer todos los usuarios con conteo de articulos
 router.get("/usuarios", verifyToken, esAdmin, async (req: AuthRequest, res: Response) => {
     try {
         const usuarios = await User.find().select("-password");
@@ -25,6 +26,25 @@ router.get("/usuarios", verifyToken, esAdmin, async (req: AuthRequest, res: Resp
     }
 });
 
+// GET - resumen general de la plataforma
+router.get("/resumen", verifyToken, esAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+        const totalUsuarios = await User.countDocuments();
+        const totalArticulos = await Articulo.countDocuments();
+
+        // sumar el valor de todos los articulos
+        const resultado = await Articulo.aggregate([
+            { $group: { _id: null, valorTotal: { $sum: "$precio" } } }
+        ]);
+
+        const valorTotal = resultado.length > 0 ? resultado[0].valorTotal : 0;
+
+        res.json({ totalUsuarios, totalArticulos, valorTotal });
+    } catch (error) {
+        res.status(500).json({ msg: "Error al cargar resumen" });
+    }
+});
+
 // DELETE - borrar usuario y sus articulos
 router.delete("/usuarios/:id", verifyToken, esAdmin, async (req: AuthRequest, res: Response) => {
     try {
@@ -34,12 +54,10 @@ router.delete("/usuarios/:id", verifyToken, esAdmin, async (req: AuthRequest, re
             return res.status(404).json({ msg: "Usuario no encontrado" });
         }
 
-        // no dejar que se borre a si mismo
         if (usuario._id.toString() === req.user.id) {
             return res.status(400).json({ msg: "No puedes borrar tu propia cuenta" });
         }
 
-        // borrar sus articulos tambien
         await Articulo.deleteMany({ id_usuario: usuario._id });
         await User.findByIdAndDelete(req.params.id);
 

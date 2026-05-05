@@ -29,7 +29,6 @@ router.post("/", verifyToken, async (req: AuthRequest, res: Response) => {
             precio
         });
 
-        // emitir por socket
         const io = req.app.get("io");
         io.to(req.user.id).emit("articulo_agregado", nuevo);
 
@@ -39,7 +38,45 @@ router.post("/", verifyToken, async (req: AuthRequest, res: Response) => {
     }
 });
 
-// DELETE - borrar articulo
+// DELETE - vaciar toda la boveda del usuario (va antes de /:id)
+router.delete("/vaciar", verifyToken, async (req: AuthRequest, res: Response) => {
+    try {
+        await Articulo.deleteMany({ id_usuario: req.user.id });
+        res.json({ msg: "Boveda vaciada" });
+    } catch (error) {
+        res.status(500).json({ msg: "Error al vaciar" });
+    }
+});
+
+// PUT - editar articulo
+router.put("/:id", verifyToken, async (req: AuthRequest, res: Response) => {
+    try {
+        const articulo = await Articulo.findById(req.params.id);
+
+        if (!articulo) {
+            return res.status(404).json({ msg: "No encontrado" });
+        }
+
+        if (articulo.id_usuario.toString() !== req.user.id) {
+            return res.status(403).json({ msg: "No puedes editar articulos de otro" });
+        }
+
+        const actualizado = await Articulo.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+
+        const io = req.app.get("io");
+        io.to(req.user.id).emit("articulo_actualizado", actualizado);
+
+        res.json(actualizado);
+    } catch (error) {
+        res.status(500).json({ msg: "Error al editar" });
+    }
+});
+
+// DELETE - borrar un articulo
 router.delete("/:id", verifyToken, async (req: AuthRequest, res: Response) => {
     try {
         const articulo = await Articulo.findById(req.params.id);
@@ -48,7 +85,6 @@ router.delete("/:id", verifyToken, async (req: AuthRequest, res: Response) => {
             return res.status(404).json({ msg: "No encontrado" });
         }
 
-        // checar que sea del usuario
         if (articulo.id_usuario.toString() !== req.user.id) {
             return res.status(403).json({ msg: "No puedes borrar articulos de otro" });
         }

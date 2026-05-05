@@ -4,10 +4,12 @@ import { API_URL, headersConToken } from '../helpers/authHelper';
 
 export const Admin = () => {
     const [usuarios, setUsuarios] = useState<any[]>([]);
+    const [resumen, setResumen] = useState({ totalUsuarios: 0, totalArticulos: 0, valorTotal: 0 });
     const [cargando, setCargando] = useState(true);
 
     useEffect(() => {
         cargarUsuarios();
+        cargarResumen();
     }, []);
 
     const cargarUsuarios = async () => {
@@ -25,6 +27,20 @@ export const Admin = () => {
         }
     };
 
+    // traer las estadisticas generales
+    const cargarResumen = async () => {
+        try {
+            const resp = await fetch(`${API_URL}/admin/resumen`, {
+                headers: headersConToken()
+            });
+            if (resp.ok) {
+                setResumen(await resp.json());
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
     const eliminarUsuario = async (id: string, nombre: string) => {
         if (!confirm(`¿Seguro que quieres eliminar a ${nombre}? Se borrarán también todos sus artículos.`)) {
             return;
@@ -37,8 +53,9 @@ export const Admin = () => {
             });
 
             if (resp.ok) {
-                // quitarlo de la lista
                 setUsuarios(prev => prev.filter(u => u._id !== id));
+                // recargar resumen porque cambio
+                cargarResumen();
             } else {
                 const datos = await resp.json();
                 alert(datos.msg || 'Error al eliminar');
@@ -54,6 +71,22 @@ export const Admin = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Panel de Control</h2>
                 <Link to="/" className="btn-secundario" style={{ textDecoration: 'none' }}>Volver al Inicio</Link>
+            </div>
+
+            {/* Resumen general de la plataforma */}
+            <div className="admin-resumen">
+                <div className="admin-stat">
+                    <span className="numero">{resumen.totalUsuarios}</span>
+                    <span className="label">Usuarios</span>
+                </div>
+                <div className="admin-stat">
+                    <span className="numero">{resumen.totalArticulos}</span>
+                    <span className="label">Artículos totales</span>
+                </div>
+                <div className="admin-stat">
+                    <span className="numero">${resumen.valorTotal.toLocaleString()}</span>
+                    <span className="label">Valor total MXN</span>
+                </div>
             </div>
 
             <p style={{ color: '#888', marginBottom: '30px' }}>Usuarios registrados en la plataforma.</p>
@@ -107,6 +140,11 @@ export const Admin = () => {
                     </tbody>
                 </table>
             )}
+
+            {/* Footer */}
+            <div className="footer">
+                <span>Obsidian</span> — Panel de Administración © {new Date().getFullYear()}
+            </div>
         </div>
     );
 };

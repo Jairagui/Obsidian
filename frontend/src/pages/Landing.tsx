@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
+import { haySesionActiva } from '../helpers/authHelper';
 
 export const Landing = () => {
-    // si esta en log
-    const haySesion = localStorage.getItem('rol_guardado');
+    const haySesion = haySesionActiva();
 
     const revisarAcceso = (e: React.MouseEvent) => {
         if (!haySesion) {
@@ -40,6 +40,11 @@ export const Landing = () => {
                     <h3 style={{ color: '#2563eb' }}>Privacidad</h3>
                     <p>Un sistema hecho exclusivamente para ti, sin módulos de venta externos.</p>
                 </div>
+            </div>
+
+            {/* Footer */}
+            <div className="footer">
+                <span>Obsidian</span> — Bóveda Digital para Coleccionistas © {new Date().getFullYear()}
             </div>
         </div>
     );
