@@ -38,6 +38,25 @@ export const AppRouter = () => {
     const [confirmarPass, setConfirmarPass] = useState('');
     const [errorValidacion, setErrorValidacion] = useState('');
 
+    // para marcar los campos que el usuario toco pero dejo vacios
+    const [camposTocados, setCamposTocados] = useState<string[]>([]);
+
+    // cuando el usuario sale de un campo sin llenarlo
+    const marcarCampo = (campo: string, valor: string) => {
+        if (valor.trim() === '' && !camposTocados.includes(campo)) {
+            setCamposTocados([...camposTocados, campo]);
+        }
+        // si ya lo lleno lo quitamos de la lista
+        if (valor.trim() !== '') {
+            setCamposTocados(camposTocados.filter(c => c !== campo));
+        }
+    };
+
+    // para saber si un campo esta marcado como vacio
+    const campoVacio = (campo: string) => {
+        return camposTocados.includes(campo);
+    };
+
     const iniciarSesion = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -79,6 +98,11 @@ export const AppRouter = () => {
     const crearCuenta = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (nombre.trim() === '' || correo.trim() === '' || password === '') {
+            setErrorValidacion('Llena todos los campos');
+            return;
+        }
+
         if (password !== confirmarPass) {
             setErrorValidacion('Las contraseñas no coinciden');
             return;
@@ -103,10 +127,13 @@ export const AppRouter = () => {
                 return;
             }
 
-            alert('Cuenta creada exitosamente.');
+            // ya se registro, guardamos sesion y lo mandamos a su boveda
+            guardarSesion(datos.token, datos.user);
             setVerRegistro(false);
             setErrorValidacion('');
-            setVerLogin(true);
+            setCamposTocados([]);
+            navegar('/boveda');
+            window.location.reload();
 
         } catch (error) {
             setErrorValidacion('No se pudo conectar al servidor');
@@ -121,6 +148,18 @@ export const AppRouter = () => {
         cerrarSesionHelper();
         navegar('/');
         window.location.reload();
+    };
+
+    // limpiar todo cuando se cierra un modal
+    const cerrarModales = () => {
+        setVerLogin(false);
+        setVerRegistro(false);
+        setErrorValidacion('');
+        setCamposTocados([]);
+        setNombre('');
+        setCorreo('');
+        setPassword('');
+        setConfirmarPass('');
     };
 
     return (
@@ -146,8 +185,8 @@ export const AppRouter = () => {
                         </>
                     ) : (
                         <>
-                            <button onClick={() => {setVerLogin(true); setErrorValidacion('');}} className="btn-secundario">Login</button>
-                            <button onClick={() => {setVerRegistro(true); setErrorValidacion('');}} className="btn-primario">Sign Up</button>
+                            <button onClick={() => {cerrarModales(); setVerLogin(true);}} className="btn-secundario">Login</button>
+                            <button onClick={() => {cerrarModales(); setVerRegistro(true);}} className="btn-primario">Sign Up</button>
                         </>
                     )}
                 </div>
@@ -157,7 +196,7 @@ export const AppRouter = () => {
             {verLogin && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <button className="btn-cerrar" onClick={() => setVerLogin(false)}>X</button>
+                        <button className="btn-cerrar" onClick={cerrarModales}>X</button>
                         <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Acceso</h2>
 
                         {errorValidacion && <p className="mensaje-error">{errorValidacion}</p>}
@@ -165,11 +204,21 @@ export const AppRouter = () => {
                         <form onSubmit={iniciarSesion}>
                             <div className="form-group">
                                 <label>Correo Electrónico</label>
-                                <input type="email" placeholder="tu@correo.com" onChange={(e) => setCorreo(e.target.value)} required />
+                                <input type="email" placeholder="tu@correo.com"
+                                    className={campoVacio('login-correo') ? 'input-error' : ''}
+                                    onChange={(e) => setCorreo(e.target.value)}
+                                    onBlur={(e) => marcarCampo('login-correo', e.target.value)}
+                                    required />
+                                {campoVacio('login-correo') && <span className="campo-requerido">Este campo es obligatorio</span>}
                             </div>
                             <div className="form-group">
                                 <label>Contraseña</label>
-                                <input type="password" onChange={(e) => setPassword(e.target.value)} required />
+                                <input type="password"
+                                    className={campoVacio('login-pass') ? 'input-error' : ''}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    onBlur={(e) => marcarCampo('login-pass', e.target.value)}
+                                    required />
+                                {campoVacio('login-pass') && <span className="campo-requerido">Este campo es obligatorio</span>}
                             </div>
                             <button type="submit" className="btn-primario" style={{ width: '100%', marginTop: '10px' }}>Entrar</button>
                         </form>
@@ -187,6 +236,10 @@ export const AppRouter = () => {
                             </svg>
                             Continuar con Google
                         </button>
+
+                        <p style={{ textAlign: 'center', marginTop: '15px', color: '#666', fontSize: '13px' }}>
+                            ¿No tienes cuenta? <span onClick={() => {cerrarModales(); setVerRegistro(true);}} style={{ color: 'white', cursor: 'pointer', textDecoration: 'underline' }}>Regístrate</span>
+                        </p>
                     </div>
                 </div>
             )}
@@ -195,7 +248,7 @@ export const AppRouter = () => {
             {verRegistro && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <button className="btn-cerrar" onClick={() => setVerRegistro(false)}>X</button>
+                        <button className="btn-cerrar" onClick={cerrarModales}>X</button>
                         <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Crear Cuenta</h2>
 
                         {errorValidacion && <p className="mensaje-error">{errorValidacion}</p>}
@@ -203,19 +256,39 @@ export const AppRouter = () => {
                         <form onSubmit={crearCuenta}>
                             <div className="form-group">
                                 <label>Nombre</label>
-                                <input type="text" onChange={(e) => setNombre(e.target.value)} required />
+                                <input type="text"
+                                    className={campoVacio('reg-nombre') ? 'input-error' : ''}
+                                    onChange={(e) => setNombre(e.target.value)}
+                                    onBlur={(e) => marcarCampo('reg-nombre', e.target.value)}
+                                    required />
+                                {campoVacio('reg-nombre') && <span className="campo-requerido">Este campo es obligatorio</span>}
                             </div>
                             <div className="form-group">
                                 <label>Correo Electrónico</label>
-                                <input type="email" onChange={(e) => setCorreo(e.target.value)} required />
+                                <input type="email"
+                                    className={campoVacio('reg-correo') ? 'input-error' : ''}
+                                    onChange={(e) => setCorreo(e.target.value)}
+                                    onBlur={(e) => marcarCampo('reg-correo', e.target.value)}
+                                    required />
+                                {campoVacio('reg-correo') && <span className="campo-requerido">Este campo es obligatorio</span>}
                             </div>
                             <div className="form-group">
                                 <label>Contraseña</label>
-                                <input type="password" onChange={(e) => setPassword(e.target.value)} required />
+                                <input type="password"
+                                    className={campoVacio('reg-pass') ? 'input-error' : ''}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    onBlur={(e) => marcarCampo('reg-pass', e.target.value)}
+                                    required />
+                                {campoVacio('reg-pass') && <span className="campo-requerido">Este campo es obligatorio</span>}
                             </div>
                             <div className="form-group">
                                 <label>Confirmar Contraseña</label>
-                                <input type="password" onChange={(e) => setConfirmarPass(e.target.value)} required />
+                                <input type="password"
+                                    className={campoVacio('reg-confirm') ? 'input-error' : ''}
+                                    onChange={(e) => setConfirmarPass(e.target.value)}
+                                    onBlur={(e) => marcarCampo('reg-confirm', e.target.value)}
+                                    required />
+                                {campoVacio('reg-confirm') && <span className="campo-requerido">Este campo es obligatorio</span>}
                             </div>
                             <button type="submit" className="btn-primario" style={{ width: '100%', marginTop: '10px' }}>Registrarse</button>
                         </form>
@@ -233,13 +306,17 @@ export const AppRouter = () => {
                             </svg>
                             Registrarse con Google
                         </button>
+
+                        <p style={{ textAlign: 'center', marginTop: '15px', color: '#666', fontSize: '13px' }}>
+                            ¿Ya tienes cuenta? <span onClick={() => {cerrarModales(); setVerLogin(true);}} style={{ color: 'white', cursor: 'pointer', textDecoration: 'underline' }}>Inicia sesión</span>
+                        </p>
                     </div>
                 </div>
             )}
 
             {/* RUTAS DEL PROYECTO */}
             <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={<Landing abrirRegistro={() => {cerrarModales(); setVerRegistro(true);}} />} />
                 <Route path="/boveda" element={<RutaProtegida><Boveda /></RutaProtegida>} />
                 <Route path="/admin" element={<RutaProtegida ocupasAdmin={true}><Admin /></RutaProtegida>} />
                 <Route path="/auth/google/callback" element={<GoogleCallback />} />

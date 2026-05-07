@@ -1,13 +1,17 @@
 import { Link } from 'react-router-dom';
 import { haySesionActiva } from '../helpers/authHelper';
 
-export const Landing = () => {
+// recibimos la funcion para abrir el registro desde AppRouter
+export const Landing = ({ abrirRegistro }: { abrirRegistro?: () => void }) => {
     const haySesion = haySesionActiva();
 
     const revisarAcceso = (e: React.MouseEvent) => {
         if (!haySesion) {
             e.preventDefault();
-            alert("¡Inicia sesión en el menú de arriba para entrar a tu bóveda!");
+            // en vez de alert, abrimos el modal de registro
+            if (abrirRegistro) {
+                abrirRegistro();
+            }
         }
     };
 
@@ -42,7 +46,6 @@ export const Landing = () => {
                 </div>
             </div>
 
-            {/* Footer */}
             <div className="footer">
                 <span>Obsidian</span> — Bóveda Digital para Coleccionistas © {new Date().getFullYear()}
             </div>

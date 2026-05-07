@@ -502,3 +502,19 @@ body {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+.input-error {
+  border-color: #ef4444 !important;
+}
+
+/* el textito rojo que sale abajo del campo */
+.campo-requerido {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* que los inputs mas bonitos */
+.form-group input:focus, .form-group select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
