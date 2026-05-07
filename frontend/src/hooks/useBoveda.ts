@@ -1,56 +1,61 @@
+
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import type { Articulo } from '../interfaces/Articulo';
-import { API_URL, headersConToken, obtenerUsuario } from '../helpers/authHelper';
+import type { Articulo } from '../interfaces/Articulo-front.ts';
+import { API_URL, headersConToken, obtenerToken, obtenerUsuario } from '../helpers/authHelper';
 
 const SOCKET_URL = 'http://localhost:3000';
 
-// manejos de estados
 export const useBoveda = () => {
     const [articulos, setArticulos] = useState<Articulo[]>([]);
     const [busqueda, setBusqueda] = useState('');
     const [categoriaSelect, setCategoriaSelect] = useState('Todas');
     const [estaCargando, setEstaCargando] = useState(true);
     const [socket, setSocket] = useState<Socket | null>(null);
+    const [mensaje, setMensaje] = useState(''); // para el toast
 
     const usuario = obtenerUsuario();
 
-    // conectar socket y cargar articulos
-    useEffect(() => {
-        const nuevoSocket = io(SOCKET_URL);
-        setSocket(nuevoSocket);
+    // mostrar un mensaje arriba que se quita despues de unos segundos
+    const mostrarMsg = (texto: string) => {
+        setMensaje(texto);
+        setTimeout(() => {
+            setMensaje('');
+        }, 3000);
+    };
 
+    // conexion del socket
+    useEffect(() => {
+        const sock = io(SOCKET_URL);
+        setSocket(sock);
         if (usuario?.id) {
-            nuevoSocket.on('connect', () => {
-                nuevoSocket.emit('unirse_sala', usuario.id);
+            sock.on('connect', () => {
+                sock.emit('unirse_sala', usuario.id);
             });
         }
-
         cargarArticulos();
-
-        return () => { nuevoSocket.disconnect(); };
+        return () => { sock.disconnect(); };
     }, []);
 
-    // escuchar socket para tiempo real
+    // eventos del socket para que se actualice solo
     useEffect(() => {
         if (!socket) return;
 
         socket.on('articulo_agregado', (nuevo: Articulo) => {
             setArticulos(prev => {
-                if (prev.find(a => a._id === nuevo._id)) return prev;
+                // checamos que no se repita
+                const yaEsta = prev.find(a => a._id === nuevo._id);
+                if (yaEsta) return prev;
                 return [...prev, nuevo];
             });
         });
 
-        socket.on('articulo_borrado', (idBorrado: string) => {
-            setArticulos(prev => prev.filter(a => a._id !== idBorrado));
+        socket.on('articulo_borrado', (id: string) => {
+            setArticulos(prev => prev.filter(a => a._id !== id));
         });
 
-        // cuando se edita un articulo
-        socket.on('articulo_actualizado', (actualizado: Articulo) => {
-            setArticulos(prev =>
-                prev.map(a => a._id === actualizado._id ? actualizado : a)
-            );
+        socket.on('articulo_actualizado', (editado: Articulo) => {
+            setArticulos(prev => prev.map(a => a._id === editado._id ? editado : a));
         });
 
         return () => {
@@ -60,50 +65,66 @@ export const useBoveda = () => {
         };
     }, [socket]);
 
+    // traer los articulos de la api
     const cargarArticulos = async () => {
         setEstaCargando(true);
         try {
-            const resp = await fetch(`${API_URL}/articulos`, {
-                headers: headersConToken()
-            });
+            const resp = await fetch(`${API_URL}/articulos`, { headers: headersConToken() });
             if (resp.ok) {
-                const datos = await resp.json();
-                setArticulos(datos);
+                const data = await resp.json();
+                setArticulos(data);
             }
-        } catch (error) {
-            console.error('Error cargando articulos:', error);
+        } catch (err) {
+            console.log("no se pudieron cargar los articulos", err);
         } finally {
             setEstaCargando(false);
         }
     };
 
-    // agregar articulo
-    const agregarArticulo = async (nuevo: Omit<Articulo, '_id'>) => {
+    // agregar articulo - usamos FormData porque mandamos la foto tambien
+    const agregarArticulo = async (datos: any, foto: File | null) => {
         try {
+            // FormData es para poder mandar archivos junto con los datos
+            const formData = new FormData();
+            formData.append('nombre', datos.nombre);
+            formData.append('marca', datos.marca);
+            formData.append('categoria', datos.categoria);
+            formData.append('anio', String(datos.anio));
+            formData.append('condicion', datos.condicion);
+            formData.append('precio', String(datos.precio));
+
+            // si selecciono una foto la metemos al form
+            if (foto) {
+                formData.append('imagen', foto);
+            }
+
             const resp = await fetch(`${API_URL}/articulos`, {
                 method: 'POST',
-                headers: headersConToken(),
-                body: JSON.stringify(nuevo)
+                // ojo: no ponemos Content-Type porque FormData lo pone solo
+                headers: { 'Authorization': `Bearer ${obtenerToken()}` },
+                body: formData
             });
+
             if (resp.ok) {
                 await resp.json();
+                mostrarMsg('Articulo guardado!');
                 return true;
             }
             return false;
-        } catch (error) {
-            console.error('Error al agregar:', error);
+
+        } catch (err) {
+            console.log("error al agregar", err);
             return false;
         }
     };
 
-    // editar un articulo (se llama desde la CartaArticulo)
-    const editarArticulo = (actualizado: Articulo) => {
-        setArticulos(prev =>
-            prev.map(a => a._id === actualizado._id ? actualizado : a)
-        );
+    // cuando se edita desde la tarjeta
+    const editarArticulo = (editado: Articulo) => {
+        setArticulos(prev => prev.map(a => a._id === editado._id ? editado : a));
+        mostrarMsg('Se guardo el cambio');
     };
 
-    // borrar un articulo
+    // borrar
     const borrarArticulo = async (id: string) => {
         try {
             const resp = await fetch(`${API_URL}/articulos/${id}`, {
@@ -111,14 +132,15 @@ export const useBoveda = () => {
                 headers: headersConToken()
             });
             if (resp.ok) {
-                setArticulos(prev => prev.filter(item => item._id !== id));
+                setArticulos(prev => prev.filter(a => a._id !== id));
+                mostrarMsg('Se elimino el articulo');
             }
-        } catch (error) {
-            console.error('Error al borrar:', error);
+        } catch (err) {
+            console.log("error borrando", err)
         }
     };
 
-    // vaciar toda la boveda
+    // borrar todo
     const vaciarBoveda = async () => {
         try {
             const resp = await fetch(`${API_URL}/articulos/vaciar`, {
@@ -127,34 +149,34 @@ export const useBoveda = () => {
             });
             if (resp.ok) {
                 setArticulos([]);
+                mostrarMsg('Se vacio la boveda');
             }
-        } catch (error) {
-            console.error('Error al vaciar:', error);
+        } catch (err) {
+            console.log("error al vaciar", err)
         }
     };
 
-    // Buscador y filtros combinados
+    // filtros
     const articulosFiltrados = articulos.filter((item) => {
         const coincideNombre = item.nombre.toLowerCase().includes(busqueda.toLowerCase());
         const coincideCategoria = categoriaSelect === 'Todas' || item.categoria === categoriaSelect;
         return coincideNombre && coincideCategoria;
     });
 
-    // Sumamos los precios
-    const totalEstimado = articulosFiltrados.reduce((acumulado, item) => acumulado + item.precio, 0);
+    // total
+    const totalEstimado = articulosFiltrados.reduce((ac, item) => ac + item.precio, 0);
 
-    // contar por categoria
+    // conteos
     const conteoSneakers = articulos.filter(a => a.categoria === 'Sneakers').length;
     const conteoRelojes = articulos.filter(a => a.categoria === 'Relojes').length;
     const conteoFiguras = articulos.filter(a => a.categoria === 'Figuras').length;
 
     return {
-        articulos, setArticulos,
-        busqueda, setBusqueda,
+        articulos, setArticulos, busqueda, setBusqueda,
         categoriaSelect, setCategoriaSelect,
         estaCargando, articulosFiltrados,
         borrarArticulo, agregarArticulo, editarArticulo,
         vaciarBoveda, totalEstimado,
-        conteoSneakers, conteoRelojes, conteoFiguras
+        conteoSneakers, conteoRelojes, conteoFiguras, mensaje
     };
 };

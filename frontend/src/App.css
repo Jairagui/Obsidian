@@ -182,3 +182,57 @@
     border-right-color: var(--border);
   }
 }
+
+/* foto en las tarjetas */
+.imagen-articulo {
+  width: calc(100% + 40px);
+  margin: -20px -20px 10px -20px;
+  height: 180px;
+  object-fit: cover;
+}
+
+/* cuando no hay foto */
+.imagen-placeholder {
+  width: 100%;
+  height: 100px;
+  background: #111;
+  border: 1px dashed #333;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+/* mensajito verde que sale arriba */
+.toast {
+  position: fixed;
+  top: 80px;
+  right: 30px;
+  background: #065f46;
+  color: #a7f3d0;
+  border: 1px solid #10b981;
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 2000;
+  font-size: 14px;
+}
+
+/* el circulito que gira cuando carga */
+.spinner {
+  width: 35px;
+  height: 35px;
+  border: 3px solid #333;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes girar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+

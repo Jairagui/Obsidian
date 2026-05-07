@@ -1,5 +1,4 @@
-// src/interfaces/Articulo-backend.ts
-// el modelo del articulo
+// el modelo del articulo le pusimos imagen para las fotos
 export interface Articulo {
     _id: string;
     nombre: string;
@@ -8,4 +7,5 @@ export interface Articulo {
     anio: number;
     condicion: string;
     precio: number;
+    imagen: string;
 }
