@@ -10,7 +10,7 @@ export const Boveda = () => {
         estaCargando, articulosFiltrados,
         borrarArticulo, agregarArticulo, editarArticulo,
         vaciarBoveda, totalEstimado,
-        conteoSneakers, conteoRelojes, conteoFiguras, mensaje
+        conteoSneakers, conteoRelojes, conteoFiguras, mensaje, tipoMsg
     } = useBoveda();
 
     const [mostrarForm, setMostrarForm] = useState(false);
@@ -20,7 +20,6 @@ export const Boveda = () => {
     const [nuevoPrecio, setNuevoPrecio] = useState('');
     const [fotoSeleccionada, setFotoSeleccionada] = useState<File | null>(null);
 
-    // cuando le dan guardar
     const manejarSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -33,7 +32,6 @@ export const Boveda = () => {
             precio: Number(nuevoPrecio)
         }, fotoSeleccionada);
 
-        // si se guardo limpiamos todo
         if (ok) {
             setMostrarForm(false);
             setNuevoNombre('');
@@ -43,7 +41,6 @@ export const Boveda = () => {
         }
     };
 
-    // vaciar con confirmacion doble para que no lo hagan por accidente
     const manejarVaciar = () => {
         if (articulos.length === 0) {
             alert('No tienes articulos');
@@ -59,8 +56,12 @@ export const Boveda = () => {
     return (
         <div style={{ padding: '50px' }}>
 
-            {/* el mensajito que sale arriba cuando haces algo */}
-            {mensaje && <div className="toast">{mensaje}</div>}
+            {/* mensaje verde si esta bien, rojo si hay error */}
+            {mensaje && (
+                <div className={tipoMsg === 'ok' ? 'toast toast-ok' : 'toast toast-error'}>
+                    {mensaje}
+                </div>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Mi Colección Personal</h2>
@@ -105,7 +106,6 @@ export const Boveda = () => {
                 <button className="btn-vaciar" onClick={manejarVaciar}>Vaciar todo</button>
             </div>
 
-            {/* formulario para agregar, ahora con input de foto */}
             {mostrarForm && (
                 <div style={{ background: '#111', padding: '20px', borderRadius: '10px', border: '1px solid #333', marginBottom: '30px' }}>
                     <h3 style={{ marginBottom: '15px' }}>Registrar nuevo</h3>
@@ -121,7 +121,6 @@ export const Boveda = () => {
                         </select>
                         <input type="number" placeholder="Precio" className="input-buscar" required min="1"
                             value={nuevoPrecio} onChange={e => setNuevoPrecio(e.target.value)} />
-                        {/* aqui el usuario sube la foto de su articulo */}
                         <input type="file" accept="image/*" className="input-buscar"
                             onChange={e => setFotoSeleccionada(e.target.files?.[0] || null)} />
                         <button type="submit" className="btn-guardar">Guardar</button>
@@ -129,7 +128,6 @@ export const Boveda = () => {
                 </div>
             )}
 
-            {/* spinner mientras carga */}
             {estaCargando ? (
                 <div style={{ textAlign: 'center', marginTop: '50px' }}>
                     <div className="spinner"></div>

@@ -469,13 +469,22 @@ body {
   position: fixed;
   top: 80px;
   right: 30px;
-  background: #065f46;
-  color: #a7f3d0;
-  border: 1px solid #10b981;
   padding: 12px 24px;
   border-radius: 8px;
   z-index: 2000;
   font-size: 14px;
+}
+
+.toast-ok {
+  background: #065f46;
+  color: #a7f3d0;
+  border: 1px solid #10b981;
+}
+
+.toast-error {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border: 1px solid #ef4444;
 }
 
 /* circulito de cargando */

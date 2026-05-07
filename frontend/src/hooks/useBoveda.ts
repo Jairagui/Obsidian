@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import type { Articulo } from '../interfaces/Articulo-front.ts';
-import { API_URL, headersConToken, obtenerToken, obtenerUsuario } from '../helpers/authHelper';
+import type { Articulo } from '../interfaces/Articulo-front';
+import { API_URL, headersConToken, obtenerToken, obtenerUsuario, cerrarSesionHelper } from '../helpers/authHelper';
 
 const SOCKET_URL = 'http://localhost:3000';
 
@@ -12,19 +11,27 @@ export const useBoveda = () => {
     const [categoriaSelect, setCategoriaSelect] = useState('Todas');
     const [estaCargando, setEstaCargando] = useState(true);
     const [socket, setSocket] = useState<Socket | null>(null);
-    const [mensaje, setMensaje] = useState(''); // para el toast
+    const [mensaje, setMensaje] = useState('');
+    const [tipoMsg, setTipoMsg] = useState<'ok' | 'error'>('ok'); // para saber si es verde o rojo
 
     const usuario = obtenerUsuario();
 
-    // mostrar un mensaje arriba que se quita despues de unos segundos
-    const mostrarMsg = (texto: string) => {
+    // mostrar mensaje verde o rojo
+    const mostrarMsg = (texto: string, tipo: 'ok' | 'error' = 'ok') => {
         setMensaje(texto);
-        setTimeout(() => {
-            setMensaje('');
-        }, 3000);
+        setTipoMsg(tipo);
+        setTimeout(() => { setMensaje(''); }, 3000);
     };
 
-    // conexion del socket
+    // si el token expiro cerramos sesion y mandamos al inicio
+    const manejarTokenExpirado = () => {
+        mostrarMsg('Tu sesion expiro, vuelve a iniciar sesion', 'error');
+        setTimeout(() => {
+            cerrarSesionHelper();
+            window.location.href = '/';
+        }, 2000);
+    };
+
     useEffect(() => {
         const sock = io(SOCKET_URL);
         setSocket(sock);
@@ -37,27 +44,21 @@ export const useBoveda = () => {
         return () => { sock.disconnect(); };
     }, []);
 
-    // eventos del socket para que se actualice solo
     useEffect(() => {
         if (!socket) return;
-
         socket.on('articulo_agregado', (nuevo: Articulo) => {
             setArticulos(prev => {
-                // checamos que no se repita
                 const yaEsta = prev.find(a => a._id === nuevo._id);
                 if (yaEsta) return prev;
                 return [...prev, nuevo];
             });
         });
-
         socket.on('articulo_borrado', (id: string) => {
             setArticulos(prev => prev.filter(a => a._id !== id));
         });
-
         socket.on('articulo_actualizado', (editado: Articulo) => {
             setArticulos(prev => prev.map(a => a._id === editado._id ? editado : a));
         });
-
         return () => {
             socket.off('articulo_agregado');
             socket.off('articulo_borrado');
@@ -65,94 +66,132 @@ export const useBoveda = () => {
         };
     }, [socket]);
 
-    // traer los articulos de la api
     const cargarArticulos = async () => {
         setEstaCargando(true);
         try {
             const resp = await fetch(`${API_URL}/articulos`, { headers: headersConToken() });
+
+            if (resp.status === 401) {
+                manejarTokenExpirado();
+                return;
+            }
+
             if (resp.ok) {
                 const data = await resp.json();
                 setArticulos(data);
+            } else {
+                mostrarMsg('Error al cargar los articulos', 'error');
             }
         } catch (err) {
             console.log("no se pudieron cargar los articulos", err);
+            mostrarMsg('No se pudo conectar al servidor', 'error');
         } finally {
             setEstaCargando(false);
         }
     };
 
-    // agregar articulo - usamos FormData porque mandamos la foto tambien
+    // agregar - usa FormData para la foto
     const agregarArticulo = async (datos: any, foto: File | null) => {
-        try {
-            // FormData es para poder mandar archivos junto con los datos
-            const formData = new FormData();
-            formData.append('nombre', datos.nombre);
-            formData.append('marca', datos.marca);
-            formData.append('categoria', datos.categoria);
-            formData.append('anio', String(datos.anio));
-            formData.append('condicion', datos.condicion);
-            formData.append('precio', String(datos.precio));
+        // validar que no esten vacios
+        if (!datos.nombre || datos.nombre.trim() === '') {
+            mostrarMsg('El nombre no puede estar vacio', 'error');
+            return false;
+        }
+        if (!datos.marca || datos.marca.trim() === '') {
+            mostrarMsg('La marca no puede estar vacia', 'error');
+            return false;
+        }
+        if (!datos.precio || datos.precio <= 0) {
+            mostrarMsg('El precio tiene que ser mayor a 0', 'error');
+            return false;
+        }
 
-            // si selecciono una foto la metemos al form
-            if (foto) {
-                formData.append('imagen', foto);
-            }
+        try {
+            const form = new FormData();
+            form.append('nombre', datos.nombre.trim());
+            form.append('marca', datos.marca.trim());
+            form.append('categoria', datos.categoria);
+            form.append('anio', String(datos.anio));
+            form.append('condicion', datos.condicion);
+            form.append('precio', String(datos.precio));
+            if (foto) form.append('imagen', foto);
 
             const resp = await fetch(`${API_URL}/articulos`, {
                 method: 'POST',
-                // ojo: no ponemos Content-Type porque FormData lo pone solo
                 headers: { 'Authorization': `Bearer ${obtenerToken()}` },
-                body: formData
+                body: form
             });
+
+            if (resp.status === 401) {
+                manejarTokenExpirado();
+                return false;
+            }
 
             if (resp.ok) {
                 await resp.json();
                 mostrarMsg('Articulo guardado!');
                 return true;
+            } else {
+                const data = await resp.json();
+                mostrarMsg(data.msg || 'No se pudo guardar', 'error');
+                return false;
             }
-            return false;
-
         } catch (err) {
             console.log("error al agregar", err);
+            mostrarMsg('No se pudo conectar al servidor', 'error');
             return false;
         }
     };
 
-    // cuando se edita desde la tarjeta
     const editarArticulo = (editado: Articulo) => {
         setArticulos(prev => prev.map(a => a._id === editado._id ? editado : a));
         mostrarMsg('Se guardo el cambio');
     };
 
-    // borrar
     const borrarArticulo = async (id: string) => {
         try {
             const resp = await fetch(`${API_URL}/articulos/${id}`, {
-                method: 'DELETE',
-                headers: headersConToken()
+                method: 'DELETE', headers: headersConToken()
             });
+
+            if (resp.status === 401) {
+                manejarTokenExpirado();
+                return;
+            }
+
             if (resp.ok) {
                 setArticulos(prev => prev.filter(a => a._id !== id));
                 mostrarMsg('Se elimino el articulo');
+            } else {
+                const data = await resp.json();
+                mostrarMsg(data.msg || 'No se pudo borrar', 'error');
             }
         } catch (err) {
             console.log("error borrando", err)
+            mostrarMsg('Error de conexion', 'error');
         }
     };
 
-    // borrar todo
     const vaciarBoveda = async () => {
         try {
             const resp = await fetch(`${API_URL}/articulos/vaciar`, {
-                method: 'DELETE',
-                headers: headersConToken()
+                method: 'DELETE', headers: headersConToken()
             });
+
+            if (resp.status === 401) {
+                manejarTokenExpirado();
+                return;
+            }
+
             if (resp.ok) {
                 setArticulos([]);
                 mostrarMsg('Se vacio la boveda');
+            } else {
+                mostrarMsg('No se pudo vaciar', 'error');
             }
         } catch (err) {
             console.log("error al vaciar", err)
+            mostrarMsg('Error de conexion', 'error');
         }
     };
 
@@ -163,10 +202,7 @@ export const useBoveda = () => {
         return coincideNombre && coincideCategoria;
     });
 
-    // total
     const totalEstimado = articulosFiltrados.reduce((ac, item) => ac + item.precio, 0);
-
-    // conteos
     const conteoSneakers = articulos.filter(a => a.categoria === 'Sneakers').length;
     const conteoRelojes = articulos.filter(a => a.categoria === 'Relojes').length;
     const conteoFiguras = articulos.filter(a => a.categoria === 'Figuras').length;
@@ -177,6 +213,7 @@ export const useBoveda = () => {
         estaCargando, articulosFiltrados,
         borrarArticulo, agregarArticulo, editarArticulo,
         vaciarBoveda, totalEstimado,
-        conteoSneakers, conteoRelojes, conteoFiguras, mensaje
+        conteoSneakers, conteoRelojes, conteoFiguras,
+        mensaje, tipoMsg
     };
 };
