@@ -518,3 +518,111 @@ body {
   border-color: #2563eb;
   outline: none;
 }
+
+  /* celular*/
+@media (max-width: 768px) {
+
+  /* nav se acomoda mejor */
+  .nav-principal {
+    padding: 12px 15px;
+    gap: 10px;
+  }
+
+  .nav-logo a {
+    font-size: 16px;
+    letter-spacing: 2px;
+  }
+
+  .nav-links {
+    gap: 10px;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+  }
+
+  .btn-secundario, .btn-primario {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  /* hero mas chico */
+  .hero-container {
+    padding: 50px 15px;
+  }
+
+  .hero-container h1 {
+    font-size: 32px;
+  }
+
+  .hero-container p {
+    font-size: 16px;
+  }
+
+  /* cards del landing se apilan */
+  .info-cards {
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 15px;
+    gap: 15px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  /* boveda */
+  .toolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* las tarjetas se hacen de ancho completo */
+  .grid-articulos {
+    flex-direction: column;
+  }
+
+  .item-card {
+    width: 100%;
+  }
+
+  /* estadisticas en 2 columnas */
+  .resumen-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-item {
+    min-width: auto;
+  }
+
+  /* el formulario de agregar se apila */
+  .toolbar + div form {
+    flex-direction: column;
+  }
+
+  /* modales mas anchos en cel */
+  .modal-content {
+    margin: 15px;
+    padding: 25px;
+    max-width: 100%;
+  }
+
+  /* tabla del admin con scroll horizontal */
+  .tabla-admin {
+    display: block;
+    overflow-x: auto;
+  }
+
+  /* resumen del admin se apila */
+  .admin-resumen {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* el padding general de las paginas */
+  div[style*="padding: 50px"] {
+    padding: 20px !important;
+  }
+}
