@@ -4,6 +4,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import http from "http";
+import path from "path";
 import { Server } from "socket.io";
 import passport from "passport";
 import "./config/passport";
@@ -14,7 +15,6 @@ import adminRoutes from "./routes/adminRoutes";
 const app = express();
 const server = http.createServer(app);
 
-// socket.io para tiempo real
 const io = new Server(server, {
     cors: {
         origin: process.env.FRONTEND_URL || "http://localhost:5173",
@@ -22,46 +22,40 @@ const io = new Server(server, {
     }
 });
 
-// lo guardamos para usarlo en las rutas
 app.set("io", io);
 
-// middlewares
-app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    credentials: true
-}));
+app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
 app.use(express.json());
 app.use(passport.initialize());
 
-// rutas
+// para que se puedan acceder las fotos que sube el usuario
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// rutas de la api
 app.use("/api/auth", authRoutes);
 app.use("/api/articulos", articuloRoutes);
 app.use("/api/admin", adminRoutes);
 
-// ruta de prueba
 app.get("/", (req, res) => {
     res.json({ msg: "API de Obsidian funcionando" });
 });
 
-// socket.io
+// sockets
 io.on("connection", (socket) => {
-    console.log("Socket conectado:", socket.id);
-
+    console.log("usuario conectado al socket:", socket.id);
     socket.on("unirse_sala", (userId: string) => {
         socket.join(userId);
-        console.log(`Usuario ${userId} en su sala`);
+        console.log("usuario " + userId + " entro a su sala")
     });
-
     socket.on("disconnect", () => {
-        console.log("Socket desconectado:", socket.id);
+        console.log("se desconecto:", socket.id);
     });
 });
 
-// conectar mongo y arrancar
 mongoose.connect(process.env.MONGO_URI as string)
     .then(() => {
         console.log("Mongo conectado");
         const PORT = process.env.PORT || 3000;
-        server.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+        server.listen(PORT, () => console.log("Servidor corriendo en puerto " + PORT));
     })
-    .catch(err => console.log("Error mongo:", err));
+    .catch(err => console.log("no se pudo conectar a mongo:", err));

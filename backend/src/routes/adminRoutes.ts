@@ -1,6 +1,6 @@
 import { Router, Response } from "express";
 import User from "../models/User";
-import Articulo from "../models/Articulo";
+import Articulo from "../models/Articulo-backend";
 import { verifyToken, esAdmin, AuthRequest } from "../middleware/authMiddleware";
 
 const router = Router();
