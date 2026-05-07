@@ -206,8 +206,15 @@ body {
   border: 1px solid #222;
   padding: 20px;
   border-radius: 10px;
-  width: 250px;
+  width: 280px;
   position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.item-card:hover {
+  transform: translateY(-5px);
+  border-color: #444;
 }
 
 .item-card h3 {
@@ -236,6 +243,7 @@ body {
   color: #ff4c4c;
   cursor: pointer;
   font-size: 16px;
+  z-index: 2;
 }
 
 /* Tabla del Admin  */
@@ -256,33 +264,19 @@ body {
   color: #aaa;
 }
 
-.item-card {
-  transition: transform 0.2s, border-color 0.2s;
-}
+/* ===== colores por categoria ===== */
+.cat-sneakers { border-left: 3px solid #2563eb; }
+.cat-relojes { border-left: 3px solid #22c55e; }
+.cat-figuras { border-left: 3px solid #a855f7; }
 
-.item-card:hover {
-  transform: translateY(-5px);
-  border-color: #444;
-}
-
-/* Tarjetas mas grandes */
-.item-card {
-  width: 280px;
-  padding: 25px;
-}
-
+/* info extra en las tarjetas */
 .item-card .info-extra {
   color: #666;
   font-size: 13px;
   margin-top: 8px;
 }
 
-/* Color de categoria en la tarjeta */
-.cat-sneakers { border-left: 3px solid #2563eb; }
-.cat-relojes { border-left: 3px solid #22c55e; }
-.cat-figuras { border-left: 3px solid #a855f7; }
-
-/* Botones de la tarjeta */
+/* botones de editar y borrar en la tarjeta */
 .item-card .botones-carta {
   display: flex;
   justify-content: flex-end;
@@ -305,7 +299,7 @@ body {
   color: #2563eb;
 }
 
-/*  editar dentro de la tarjeta */
+/* formulario de editar dentro de la tarjeta */
 .form-editar-carta {
   display: flex;
   flex-direction: column;
@@ -347,7 +341,7 @@ body {
   font-size: 12px;
 }
 
-/* Boton vaciar boveda */
+/* boton vaciar */
 .btn-vaciar {
   background: none;
   border: 1px solid #ff4c4c;
@@ -363,7 +357,7 @@ body {
   color: white;
 }
 
-/* Resumen estadisticas boveda */
+/* estadisticas de la boveda */
 .resumen-stats {
   display: flex;
   gap: 15px;
@@ -392,7 +386,7 @@ body {
   margin-top: 4px;
 }
 
-/* Resumen admin */
+/* resumen del admin */
 .admin-resumen {
   display: flex;
   gap: 20px;
@@ -421,7 +415,7 @@ body {
   margin-top: 5px;
 }
 
-/* Footer */
+/* footer */
 .footer {
   text-align: center;
   padding: 30px 20px;
@@ -435,7 +429,7 @@ body {
   color: #888;
 }
 
-/* Hover en botones */
+/* hover en botones */
 .btn-primario:hover {
   background-color: #ddd;
 }
@@ -446,4 +440,56 @@ body {
 
 .btn-guardar:hover {
   background-color: #1d4ed8;
+}
+
+/* ===== fotos en las tarjetas ===== */
+.imagen-articulo {
+  width: calc(100% + 40px);
+  margin: -20px -20px 10px -20px;
+  height: 180px;
+  object-fit: cover;
+}
+
+.imagen-placeholder {
+  width: 100%;
+  height: 100px;
+  background: #111;
+  border: 1px dashed #333;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+/* mensajito que sale arriba */
+.toast {
+  position: fixed;
+  top: 80px;
+  right: 30px;
+  background: #065f46;
+  color: #a7f3d0;
+  border: 1px solid #10b981;
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 2000;
+  font-size: 14px;
+}
+
+/* circulito de cargando */
+.spinner {
+  width: 35px;
+  height: 35px;
+  border: 3px solid #333;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes girar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
