@@ -3,7 +3,8 @@ import { io, Socket } from 'socket.io-client';
 import type { Articulo } from '../interfaces/Articulo-front';
 import { API_URL, headersConToken, obtenerToken, obtenerUsuario, cerrarSesionHelper } from '../helpers/authHelper';
 
-const SOCKET_URL = 'http://localhost:3000';
+// url del socket, si no hay variable de entorno usa localhost
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 
 export const useBoveda = () => {
     const [articulos, setArticulos] = useState<Articulo[]>([]);

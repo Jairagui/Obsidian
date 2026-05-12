@@ -1,7 +1,7 @@
 const TOKEN_KEY = 'obsidian_token';
 const USER_KEY = 'obsidian_usuario';
 
-export const API_URL = 'http://localhost:3000/api';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const guardarSesion = (token: string, usuario: any) => {
     localStorage.setItem(TOKEN_KEY, token);

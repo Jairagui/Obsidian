@@ -108,8 +108,8 @@ export const AppRouter = () => {
             return;
         }
 
-        if (password.length < 4) {
-            setErrorValidacion('Usa una contraseña mas segura');
+        if (password.length < 6) {
+            setErrorValidacion('La contraseña debe tener al menos 6 caracteres');
             return;
         }
 

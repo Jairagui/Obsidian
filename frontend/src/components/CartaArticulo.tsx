@@ -2,6 +2,9 @@ import { useState } from 'react';
 import type { Articulo } from '../interfaces/Articulo-front.ts';
 import { obtenerToken, API_URL } from '../helpers/authHelper';
 
+// sacamos la base de la url (sin el /api) para las fotos
+const BASE_URL = API_URL.replace('/api', '');
+
 // la tarjeta de cada articulo
 export const CartaArticulo = ({ articulo, alBorrar, alEditar }: {
     articulo: Articulo,
@@ -56,7 +59,7 @@ export const CartaArticulo = ({ articulo, alBorrar, alEditar }: {
             {/* mostramos la foto si tiene, si no un cuadro gris */}
             {articulo.imagen && articulo.imagen !== "" ? (
                 <img
-                    src={`http://localhost:3000/uploads/${articulo.imagen}`}
+                    src={`${BASE_URL}/uploads/${articulo.imagen}`}
                     alt={articulo.nombre}
                     className="imagen-articulo"
                 />
