@@ -1,12 +1,51 @@
 import { Router, Response } from "express";
 import multer from "multer";
+import path from "path";
+import fs from "fs";
 import Articulo from "../models/Articulo-backend";
 import { verifyToken, AuthRequest } from "../middleware/authMiddleware";
 
 const router = Router();
 
-// multer para subir imagenes a la carpeta uploads
-const upload = multer({ dest: "uploads/" });
+// configuracion de multer para que guarde las fotos con extension
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "uploads/");
+    },
+    filename: (req, file, cb) => {
+        // le ponemos un nombre unico para que no se repita
+        const unico = Date.now() + "-" + Math.round(Math.random() * 1000);
+        const ext = path.extname(file.originalname);
+        cb(null, unico + ext);
+    }
+});
+
+// nomas dejamos pasar imagenes
+const filtroArchivo = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    const tiposPermitidos = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (tiposPermitidos.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error("Solo se permiten imagenes (jpg, png, gif, webp)"));
+    }
+};
+
+const upload = multer({
+    storage,
+    fileFilter: filtroArchivo,
+    limits: { fileSize: 5 * 1024 * 1024 } // maximo 5MB
+});
+
+// para borrar la foto del disco cuando ya no se ocupa
+const borrarFoto = (nombreFoto: string) => {
+    if (!nombreFoto || nombreFoto === "") return;
+    const ruta = path.join(__dirname, "../../uploads", nombreFoto);
+    fs.unlink(ruta, (err) => {
+        if (err && err.code !== "ENOENT") {
+            console.log("no se pudo borrar la foto:", nombreFoto);
+        }
+    });
+};
 
 // GET - traer articulos del usuario
 router.get("/", verifyToken, async (req: AuthRequest, res: Response) => {
@@ -24,6 +63,17 @@ router.post("/", verifyToken, upload.single("imagen"), async (req: AuthRequest, 
     try {
         const { nombre, marca, categoria, anio, condicion, precio } = req.body;
 
+        // validamos que no esten vacios
+        if (!nombre || nombre.trim() === "") {
+            return res.status(400).json({ msg: "El nombre es obligatorio" });
+        }
+        if (!marca || marca.trim() === "") {
+            return res.status(400).json({ msg: "La marca es obligatoria" });
+        }
+        if (!precio || Number(precio) <= 0) {
+            return res.status(400).json({ msg: "El precio tiene que ser mayor a 0" });
+        }
+
         // checamos si subio una foto o no
         let nombreFoto = "";
         if(req.file){
@@ -32,10 +82,12 @@ router.post("/", verifyToken, upload.single("imagen"), async (req: AuthRequest, 
 
         const nuevo = await Articulo.create({
             id_usuario: req.user.id,
-            nombre, marca, categoria,
+            nombre: nombre.trim(),
+            marca: marca.trim(),
+            categoria,
             anio: anio || new Date().getFullYear(),
             condicion: condicion || "Nuevo",
-            precio,
+            precio: Number(precio),
             imagen: nombreFoto
         });
 
@@ -50,9 +102,13 @@ router.post("/", verifyToken, upload.single("imagen"), async (req: AuthRequest, 
     }
 });
 
-// borrar todos los articulos del usuario
+// borrar todos los articulos del usuario y las fotos tambien
 router.delete("/vaciar", verifyToken, async (req: AuthRequest, res: Response) => {
     try {
+        // borramos las fotos antes de borrar los articulos
+        const articulos = await Articulo.find({ id_usuario: req.user.id });
+        articulos.forEach(art => borrarFoto(art.imagen));
+
         await Articulo.deleteMany({ id_usuario: req.user.id });
         res.json({ msg: "se vacio la boveda" });
     } catch (error) {
@@ -60,7 +116,7 @@ router.delete("/vaciar", verifyToken, async (req: AuthRequest, res: Response) =>
     }
 });
 
-// editar un articulo (ahora tambien puede cambiar la foto)
+// editar un articulo ahora tambien puede cambiar la foto
 router.put("/:id", verifyToken, upload.single("imagen"), async (req: AuthRequest, res: Response) => {
     try {
         const articulo = await Articulo.findById(req.params.id);
@@ -72,8 +128,9 @@ router.put("/:id", verifyToken, upload.single("imagen"), async (req: AuthRequest
             return res.status(403).json({ msg: "ese articulo no es tuyo" });
         }
 
-        // si subio foto nueva la actualizamos
+        // si subio foto nueva quitamos la vieja
         if (req.file) {
+            borrarFoto(articulo.imagen);
             req.body.imagen = req.file.filename;
         }
 
@@ -89,7 +146,7 @@ router.put("/:id", verifyToken, upload.single("imagen"), async (req: AuthRequest
     }
 });
 
-// borrar un solo articulo
+// borrar un solo articulo y su foto
 router.delete("/:id", verifyToken, async (req: AuthRequest, res: Response) => {
     try {
         const articulo = await Articulo.findById(req.params.id);
@@ -99,6 +156,9 @@ router.delete("/:id", verifyToken, async (req: AuthRequest, res: Response) => {
         if (articulo.id_usuario.toString() !== req.user.id){
             return res.status(403).json({ msg: "no es tuyo ese" })
         }
+
+        // quitamos la foto
+        borrarFoto(articulo.imagen);
 
         await Articulo.findByIdAndDelete(req.params.id);
 
