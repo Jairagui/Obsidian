@@ -8,6 +8,17 @@ export const register = async (req: Request, res: Response) => {
     try {
         const { name, email, password } = req.body;
 
+        // checamos que no mande campos vacios
+        if (!name || name.trim() === "") {
+            return res.status(400).json({ msg: "El nombre es obligatorio" });
+        }
+        if (!email || email.trim() === "") {
+            return res.status(400).json({ msg: "El correo es obligatorio" });
+        }
+        if (!password || password.length < 6) {
+            return res.status(400).json({ msg: "La contraseña debe tener al menos 6 caracteres" });
+        }
+
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ msg: "Usuario ya existe" });
