@@ -1,7 +1,20 @@
 import { Router, Response } from "express";
+import path from "path";
+import fs from "fs";
 import User from "../models/User";
 import Articulo from "../models/Articulo-backend";
 import { verifyToken, esAdmin, AuthRequest } from "../middleware/authMiddleware";
+
+// para borrar la foto cuando eliminamos un usuario
+const borrarFoto = (nombreFoto: string) => {
+    if (!nombreFoto || nombreFoto === "") return;
+    const ruta = path.join(__dirname, "../../uploads", nombreFoto);
+    fs.unlink(ruta, (err) => {
+        if (err && err.code !== "ENOENT") {
+            console.log("no se pudo borrar la foto:", nombreFoto);
+        }
+    });
+};
 
 const router = Router();
 
@@ -57,6 +70,10 @@ router.delete("/usuarios/:id", verifyToken, esAdmin, async (req: AuthRequest, re
         if (usuario._id.toString() === req.user.id) {
             return res.status(400).json({ msg: "No puedes borrar tu propia cuenta" });
         }
+
+        // tambien borramos las fotos de sus articulos
+        const articulos = await Articulo.find({ id_usuario: usuario._id });
+        articulos.forEach(art => borrarFoto(art.imagen));
 
         await Articulo.deleteMany({ id_usuario: usuario._id });
         await User.findByIdAndDelete(req.params.id);
