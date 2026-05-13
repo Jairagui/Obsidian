@@ -11,6 +11,7 @@ import "./config/passport";
 import authRoutes from "./routes/authRoutes";
 import articuloRoutes from "./routes/articuloRoutes";
 import adminRoutes from "./routes/adminRoutes";
+import { manejarErrores } from "./middleware/errorMiddleware";
 
 const app = express();
 const server = http.createServer(app);
@@ -39,6 +40,9 @@ app.use("/api/admin", adminRoutes);
 app.get("/", (req, res) => {
     res.json({ msg: "API de Obsidian funcionando" });
 });
+
+// middleware global de errores
+app.use(manejarErrores);
 
 // sockets
 io.on("connection", (socket) => {
