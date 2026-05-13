@@ -106,3 +106,27 @@ export const getMe = async (req: any, res: Response) => {
 export const logout = (req: Request, res: Response) => {
     res.json({ msg: "Logout exitoso" });
 };
+
+// BORRAR MI CUENTA - el usuario puede borrar su propia cuenta
+export const borrarCuenta = async (req: any, res: Response) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ msg: "Usuario no encontrado" });
+        }
+
+        // no dejamos que el admin se borre a si mismo
+        if (user.role === "admin") {
+            return res.status(400).json({ msg: "El admin no puede borrar su cuenta" });
+        }
+
+        // borramos sus articulos y su cuenta
+        const Articulo = require("../models/Articulo-backend").default;
+        await Articulo.deleteMany({ id_usuario: user._id });
+        await User.findByIdAndDelete(user._id);
+
+        res.json({ msg: "Cuenta eliminada" });
+    } catch (error) {
+        res.status(500).json({ msg: "Error al borrar cuenta" });
+    }
+};
