@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL, headersConToken } from '../helpers/authHelper';
 
+// pagina del admin, solo la ven los que tienen role admin
 export const Admin = () => {
     const [usuarios, setUsuarios] = useState<any[]>([]);
     const [resumen, setResumen] = useState({ totalUsuarios: 0, totalArticulos: 0, valorTotal: 0 });
@@ -143,7 +144,7 @@ export const Admin = () => {
 
             {/* Footer */}
             <div className="footer">
-                <span>Obsidian</span> — Panel de Administración © {new Date().getFullYear()}
+                <span>Obsidian</span> — Panel de Administración  {new Date().getFullYear()}
             </div>
         </div>
     );

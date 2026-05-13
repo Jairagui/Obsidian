@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+// le agregamos user al Request para poder acceder al usuario en las rutas
 export interface AuthRequest extends Request {
     user?: any;
 }

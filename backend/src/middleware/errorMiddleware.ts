@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
+
 // middleware para atrapar errores que no se manejan en las rutas
+// por ejemplo si multer truena porque el archivo es muy grande
 export const manejarErrores = (err: any, req: Request, res: Response, next: NextFunction) => {
     console.log("error atrapado:", err.message);
 

@@ -41,7 +41,7 @@ export const Landing = ({ abrirRegistro }: { abrirRegistro?: () => void }) => {
 
                 <div className="card">
                     <h3 style={{ color: '#22c55e' }}>Tiempo Real</h3>
-                    <p>Los cambios se reflejan al instante gracias a WebSockets. Sin recargar.</p>
+                    <p>Los cambios se reflejan al instante . Sin recargar.</p>
                 </div>
 
                 <div className="card">
@@ -51,7 +51,7 @@ export const Landing = ({ abrirRegistro }: { abrirRegistro?: () => void }) => {
             </div>
 
             <div className="footer">
-                <span>Obsidian</span> — Bóveda Digital para Coleccionistas © {new Date().getFullYear()}
+                <span>Obsidian</span> — Bóveda Digital para Coleccionistas  {new Date().getFullYear()}
             </div>
         </div>
     );

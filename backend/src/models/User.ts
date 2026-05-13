@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+// modelo del usuario, el password es opcional porque los de google no tienen
 export interface IUser extends Document {
     name: string;
     email: string;

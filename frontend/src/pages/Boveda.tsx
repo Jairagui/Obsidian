@@ -210,7 +210,7 @@ export const Boveda = () => {
             )}
 
             <div className="footer">
-                <span>Obsidian</span> — Bóveda Digital para Coleccionistas © {new Date().getFullYear()}
+                <span>Obsidian</span> — Bóveda Digital para Coleccionistas {new Date().getFullYear()}
             </div>
         </div>
     );

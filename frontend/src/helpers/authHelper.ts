@@ -1,3 +1,5 @@
+// helper para todo lo de autenticacion
+// aqui guardamos y leemos el token y el usuario del localStorage
 const TOKEN_KEY = 'obsidian_token';
 const USER_KEY = 'obsidian_usuario';
 
@@ -22,7 +24,6 @@ export const obtenerUsuario = (): any | null => {
 export const cerrarSesionHelper = () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    localStorage.removeItem('rol_guardado');
 };
 
 export const haySesionActiva = (): boolean => {
