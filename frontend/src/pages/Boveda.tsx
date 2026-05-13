@@ -203,14 +203,15 @@ export const Boveda = () => {
                     ) : (
                         articulosFiltrados.map((item) => (
                             <CartaArticulo key={item._id} articulo={item}
-                                alBorrar={borrarArticulo} alEditar={editarArticulo} />
+                                alBorrar={borrarArticulo} alEditar={editarArticulo}
+                                categoriasDisponibles={categoriasDisponibles} />
                         ))
                     )}
                 </div>
             )}
 
             <div className="footer">
-                <span>Obsidian</span> — Bóveda Digital para Coleccionistas {new Date().getFullYear()}
+                <span>Obsidian</span> — Bóveda Digital para Coleccionistas © {new Date().getFullYear()}
             </div>
         </div>
     );
