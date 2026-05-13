@@ -92,11 +92,11 @@ export const Boveda = () => {
                 </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div className="boveda-header">
                 <h2>Mi Colección Personal</h2>
-                <div style={{ background: '#111', padding: '10px 20px', borderRadius: '10px', border: '1px solid #333' }}>
-                    <span style={{ color: '#888', fontSize: '14px' }}>Valor Mostrado: </span>
-                    <span style={{ fontWeight: 'bold' }}>${totalEstimado.toLocaleString()} MXN</span>
+                <div className="valor-total">
+                    <span className="valor-label">Valor Mostrado </span>
+                    <span className="valor-monto">${totalEstimado.toLocaleString()} MXN</span>
                 </div>
             </div>
 
@@ -195,7 +195,11 @@ export const Boveda = () => {
             ) : (
                 <div className="grid-articulos">
                     {articulosFiltrados.length === 0 ? (
-                        <p style={{ color: '#888' }}>No hay resultados.</p>
+                        <div className="estado-vacio">
+                            <div className="icono-vacio">◇</div>
+                            <h3>No hay artículos</h3>
+                            <p>Agrega tu primer artículo con el botón + Añadir</p>
+                        </div>
                     ) : (
                         articulosFiltrados.map((item) => (
                             <CartaArticulo key={item._id} articulo={item}

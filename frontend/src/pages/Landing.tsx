@@ -8,7 +8,6 @@ export const Landing = ({ abrirRegistro }: { abrirRegistro?: () => void }) => {
     const revisarAcceso = (e: React.MouseEvent) => {
         if (!haySesion) {
             e.preventDefault();
-            // en vez de alert, abrimos el modal de registro
             if (abrirRegistro) {
                 abrirRegistro();
             }
@@ -18,17 +17,17 @@ export const Landing = ({ abrirRegistro }: { abrirRegistro?: () => void }) => {
     return (
         <div>
             <div className="hero-container">
-                <h1>Tu Colección. <br/> Digitalizada.</h1>
+                <h1>Tu Colección. <br/> <span>Digitalizada.</span></h1>
                 <p>
-                    Obsidian es la plataforma diseñada para coleccionistas.
                     Gestiona tu inventario de manera privada y segura.
+                    Todo en un solo lugar, accesible desde cualquier dispositivo.
                 </p>
 
                 <Link
                     to="/boveda"
                     className="btn-primario"
                     onClick={revisarAcceso}
-                    style={{ padding: '15px 40px', fontSize: '18px', display: 'inline-block' }}
+                    style={{ padding: '14px 40px', fontSize: '16px', display: 'inline-block' }}
                 >
                     Ver mi Bóveda
                 </Link>
@@ -37,12 +36,17 @@ export const Landing = ({ abrirRegistro }: { abrirRegistro?: () => void }) => {
             <div className="info-cards">
                 <div className="card">
                     <h3 style={{ color: '#2563eb' }}>Organización</h3>
-                    <p>Lleva un control exacto de tus artículos por marca, año y condición.</p>
+                    <p>Lleva un control exacto de tus artículos por marca, categoría y condición.</p>
                 </div>
 
                 <div className="card">
-                    <h3 style={{ color: '#2563eb' }}>Privacidad</h3>
-                    <p>Un sistema hecho exclusivamente para ti, sin módulos de venta externos.</p>
+                    <h3 style={{ color: '#22c55e' }}>Tiempo Real</h3>
+                    <p>Los cambios se reflejan al instante gracias a WebSockets. Sin recargar.</p>
+                </div>
+
+                <div className="card">
+                    <h3 style={{ color: '#a855f7' }}>Privacidad</h3>
+                    <p>Tu colección es tuya. Sin módulos de venta, sin acceso de terceros.</p>
                 </div>
             </div>
 
