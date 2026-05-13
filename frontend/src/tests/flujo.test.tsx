@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { AppRouter } from '../routes/AppRouter'
+import { AuthProvider } from '../context/AuthContext'
 
 // simulamos el localStorage
 const mockStorage: Record<string, string> = {}
@@ -12,7 +13,7 @@ beforeEach(() => {
     vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(key => { delete mockStorage[key] })
 })
 
-const renderApp = () => render(<BrowserRouter><AppRouter /></BrowserRouter>)
+const renderApp = () => render(<BrowserRouter><AuthProvider><AppRouter /></AuthProvider></BrowserRouter>)
 
 describe('flujo completo de la app', () => {
     it('muestra el nav con login y sign up si no hay sesion', () => {

@@ -5,20 +5,18 @@ import { Boveda } from '../pages/Boveda';
 import { Admin } from '../pages/Admin';
 import { GoogleCallback } from '../pages/GoogleCallback';
 import { ModalLogin, ModalRegistro } from '../components/Modales';
-import {
-    cerrarSesionHelper, API_URL, headersConToken,
-    obtenerUsuario, obtenerRol, haySesionActiva
-} from '../helpers/authHelper';
+import { useAuth } from '../context/AuthContext';
+import { API_URL, headersConToken } from '../helpers/authHelper';
 
 //Componente para proteger las rutas
 const RutaProtegida = ({ children, ocupasAdmin = false }: { children: React.ReactNode, ocupasAdmin?: boolean }) => {
-    const rol = obtenerRol();
+    const { usuario, haySession } = useAuth();
 
-    if (!haySesionActiva()) {
+    if (!haySession()) {
         return <Navigate to="/" />;
     }
 
-    if (ocupasAdmin === true && rol !== 'admin') {
+    if (ocupasAdmin === true && usuario?.role !== 'admin') {
         return <Navigate to="/boveda" />;
     }
 
@@ -27,8 +25,7 @@ const RutaProtegida = ({ children, ocupasAdmin = false }: { children: React.Reac
 
 export const AppRouter = () => {
     const navegar = useNavigate();
-    const usuario = obtenerUsuario();
-    const rolActual = obtenerRol();
+    const { usuario, cerrarSesionCtx, haySession } = useAuth();
 
     const [verLogin, setVerLogin] = useState(false);
     const [verRegistro, setVerRegistro] = useState(false);
@@ -48,11 +45,11 @@ export const AppRouter = () => {
         setVerConfirmLogout(false);
     };
 
+    // ya no hace falta reload, el context actualiza la UI solito
     const cerrarSesion = () => {
-        cerrarSesionHelper();
+        cerrarSesionCtx();
         setVerConfirmLogout(false);
         navegar('/');
-        window.location.reload();
     };
 
     // borrar la cuenta del usuario
@@ -64,9 +61,8 @@ export const AppRouter = () => {
                 headers: headersConToken()
             });
             if (resp.ok) {
-                cerrarSesionHelper();
+                cerrarSesionCtx();
                 navegar('/');
-                window.location.reload();
             }
         } catch (err) {
             console.log("error borrando cuenta", err)
@@ -81,13 +77,13 @@ export const AppRouter = () => {
                 </div>
 
                 <div className="nav-links">
-                    {rolActual === 'admin' ? (
+                    {usuario?.role === 'admin' ? (
                         <Link to="/admin">Panel Admin</Link>
-                    ) : haySesionActiva() ? (
+                    ) : haySession() ? (
                         <Link to="/boveda">Bóveda</Link>
                     ) : null}
 
-                    {haySesionActiva() ? (
+                    {haySession() ? (
                         <>
                             <span style={{ color: '#888', fontSize: '14px' }}>
                                 Hola, {usuario?.name || 'Usuario'}

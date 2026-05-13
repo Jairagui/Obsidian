@@ -2,9 +2,11 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { ModalLogin, ModalRegistro } from '../components/Modales'
+import { AuthProvider } from '../context/AuthContext'
 
+// hay que envolver con BrowserRouter y AuthProvider
 const conRouter = (componente: any) => {
-    return render(<BrowserRouter>{componente}</BrowserRouter>)
+    return render(<BrowserRouter><AuthProvider>{componente}</AuthProvider></BrowserRouter>)
 }
 
 describe('ModalLogin', () => {

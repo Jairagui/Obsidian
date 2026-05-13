@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URL, guardarSesion } from '../helpers/authHelper';
+import { API_URL } from '../helpers/authHelper';
+import { useAuth } from '../context/AuthContext';
 
 // el svg de google que usamos en los dos modales
 const IconoGoogle = () => (
@@ -22,6 +23,7 @@ export const ModalLogin = ({ cerrar, abrirRegistro }: {
     abrirRegistro: () => void
 }) => {
     const navegar = useNavigate();
+    const { iniciarSesionCtx } = useAuth();
     const [correo, setCorreo] = useState('');
     const [password, setPassword] = useState('');
     const [errorValidacion, setErrorValidacion] = useState('');
@@ -55,14 +57,14 @@ export const ModalLogin = ({ cerrar, abrirRegistro }: {
                 setErrorValidacion(datos.msg || 'Error al iniciar sesion');
                 return;
             }
-            guardarSesion(datos.token, datos.user);
+            // guardamos la sesion con el context
+            iniciarSesionCtx(datos.token, datos.user);
             cerrar();
             if (datos.user.role === 'admin') {
                 navegar('/admin');
             } else {
                 navegar('/boveda');
             }
-            window.location.reload();
         } catch (error) {
             setErrorValidacion('No se pudo conectar al servidor');
         }
@@ -116,6 +118,7 @@ export const ModalRegistro = ({ cerrar, abrirLogin }: {
     abrirLogin: () => void
 }) => {
     const navegar = useNavigate();
+    const { iniciarSesionCtx } = useAuth();
     const [nombre, setNombre] = useState('');
     const [correo, setCorreo] = useState('');
     const [password, setPassword] = useState('');
@@ -158,10 +161,9 @@ export const ModalRegistro = ({ cerrar, abrirLogin }: {
                 setErrorValidacion(datos.msg || 'Error al registrarse');
                 return;
             }
-            guardarSesion(datos.token, datos.user);
+            iniciarSesionCtx(datos.token, datos.user);
             cerrar();
             navegar('/boveda');
-            window.location.reload();
         } catch (error) {
             setErrorValidacion('No se pudo conectar al servidor');
         }
