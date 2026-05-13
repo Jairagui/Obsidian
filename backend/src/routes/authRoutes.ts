@@ -1,7 +1,7 @@
 import { Router } from "express";
 import passport from "passport";
 
-import { register, login, getMe, logout } from "../controllers/authController";
+import { register, login, getMe, logout, borrarCuenta } from "../controllers/authController";
 import { verifyToken } from "../middleware/authMiddleware";
 import { generateToken } from "../utils/generateToken";
 
@@ -12,6 +12,7 @@ router.post("/register", register);
 router.post("/login", login);
 router.get("/me", verifyToken, getMe);
 router.post("/logout", logout);
+router.delete("/mi-cuenta", verifyToken, borrarCuenta);
 
 // Google Auth iniciar
 router.get(
@@ -19,7 +20,7 @@ router.get(
     passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-// Google Auth - callback (google nos regresa aqui)
+// Google Auth - callback google nos regresa aqui
 router.get(
     "/google/callback",
     passport.authenticate("google", { session: false, failureRedirect: "/" }),
