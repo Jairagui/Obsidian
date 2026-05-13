@@ -89,7 +89,7 @@ export const CartaArticulo = ({ articulo, alBorrar, alEditar, categoriasDisponib
                 {/* mostramos la foto si tiene, si no un cuadro gris */}
                 {articulo.imagen && articulo.imagen !== "" ? (
                     <img
-                        src={`${BASE_URL}/uploads/${articulo.imagen}`}
+                        src={articulo.imagen}
                         alt={articulo.nombre}
                         className="imagen-articulo"
                     />
