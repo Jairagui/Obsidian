@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Articulo } from '../interfaces/Articulo-front.ts';
 import { obtenerToken, API_URL } from '../helpers/authHelper';
 
-// sacamos la base de la url (sin el /api) para las fotos
+// sacamos la base de la url
 const BASE_URL = API_URL.replace('/api', '');
 
 // la tarjeta de cada articulo
@@ -17,11 +17,24 @@ export const CartaArticulo = ({ articulo, alBorrar, alEditar }: {
     const [precio, setPrecio] = useState(String(articulo.precio));
     const [nuevaFoto, setNuevaFoto] = useState<File | null>(null);
 
-    // para el color del borde segun categoria
-    let claseCat = '';
-    if (articulo.categoria === 'Sneakers') claseCat = 'cat-sneakers';
-    if (articulo.categoria === 'Relojes') claseCat = 'cat-relojes';
-    if (articulo.categoria === 'Figuras') claseCat = 'cat-figuras';
+    // colores para las categorias - las 3 originales + extras para las nuevas
+    const coloresCategorias: Record<string, string> = {
+        'Sneakers': '#2563eb',
+        'Relojes': '#22c55e',
+        'Figuras': '#a855f7',
+    };
+    // paleta para categorias nuevas que vaya creando el usuario
+    const coloresExtra = ['#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6', '#f97316'];
+
+    const obtenerColor = (categoria: string) => {
+        if (coloresCategorias[categoria]) return coloresCategorias[categoria];
+        // le asignamos un color segun la posicion del nombre
+        let hash = 0;
+        for (let i = 0; i < categoria.length; i++) hash += categoria.charCodeAt(i);
+        return coloresExtra[hash % coloresExtra.length];
+    };
+
+    const colorCategoria = obtenerColor(articulo.categoria);
 
     // guardar cambios con FormData por si cambia la foto
     const guardarCambios = async () => {
@@ -51,7 +64,7 @@ export const CartaArticulo = ({ articulo, alBorrar, alEditar }: {
     };
 
     return (
-        <div className={`item-card ${claseCat}`}>
+        <div className="item-card" style={{ borderLeft: `3px solid ${colorCategoria}` }}>
             <button className="btn-eliminar" onClick={() => {
                 if (confirm('Seguro que quieres borrar esto?')) alBorrar(articulo._id)
             }}>X</button>

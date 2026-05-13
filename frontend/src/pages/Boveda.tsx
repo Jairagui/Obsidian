@@ -71,6 +71,18 @@ export const Boveda = () => {
         ...categorias.filter(c => !['Sneakers', 'Relojes', 'Figuras'].includes(c))
     ];
 
+    // colores para las categorias
+    const coloresCategorias: Record<string, string> = {
+        'Sneakers': '#2563eb', 'Relojes': '#22c55e', 'Figuras': '#a855f7',
+    };
+    const coloresExtra = ['#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6', '#f97316'];
+    const colorDe = (cat: string) => {
+        if (coloresCategorias[cat]) return coloresCategorias[cat];
+        let hash = 0;
+        for (let i = 0; i < cat.length; i++) hash += cat.charCodeAt(i);
+        return coloresExtra[hash % coloresExtra.length];
+    };
+
     return (
         <div style={{ padding: '50px' }}>
 
@@ -96,7 +108,7 @@ export const Boveda = () => {
                 </div>
                 {categorias.map(cat => (
                     <div className="stat-item" key={cat}>
-                        <span className="stat-numero">{conteoPorCategoria[cat]}</span>
+                        <span className="stat-numero" style={{ color: colorDe(cat) }}>{conteoPorCategoria[cat]}</span>
                         <span className="stat-label">{cat}</span>
                     </div>
                 ))}
