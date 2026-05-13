@@ -2,8 +2,6 @@ import { useState } from 'react';
 import type { Articulo } from '../interfaces/Articulo-front.ts';
 import { obtenerToken, API_URL } from '../helpers/authHelper';
 
-// sacamos la base de la url
-const BASE_URL = API_URL.replace('/api', '');
 
 // la tarjeta de cada articulo
 export const CartaArticulo = ({ articulo, alBorrar, alEditar, categoriasDisponibles }: {
