@@ -1,0 +1,599 @@
+// colores que usamos en toda la app
+$negro: #000000;
+$fondo-card: #0a0a0a;
+$borde: #222;
+$borde-claro: #333;
+$texto-gris: #888;
+$texto-label: #aaa;
+$acento: #2563eb;
+$acento-hover: #1d4ed8;
+$error: #ff4c4c;
+$error-fondo: #7f1d1d;
+$exito-fondo: #065f46;
+$exito-borde: #10b981;
+$radio: 10px;
+
+// mixin para los botones redondeados
+@mixin boton-base($bg, $color, $border: none) {
+  background: $bg;
+  color: $color;
+  border: $border;
+  padding: 8px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+// mixin para las cards oscuras que se repiten
+@mixin card-oscura {
+  background-color: $fondo-card;
+  border: 1px solid $borde;
+  border-radius: $radio;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: $negro;
+  color: #ffffff;
+}
+
+// navegacion
+.nav-principal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 50px;
+  background-color: $fondo-card;
+  border-bottom: 1px solid $borde;
+
+  .nav-logo a {
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    color: white;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+
+  a {
+    color: #999;
+    text-decoration: none;
+    font-size: 15px;
+
+    &:hover {
+      color: white;
+    }
+  }
+}
+
+// botones
+.btn-secundario {
+  @include boton-base(none, white, 1px solid white);
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.btn-primario {
+  @include boton-base(white, black !important);
+  font-weight: bold;
+
+  &:hover {
+    background-color: #ddd;
+  }
+}
+
+// modales de login y registro
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  @include card-oscura;
+  border-color: $borde-claro;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+}
+
+.btn-cerrar {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: $texto-gris;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+// formularios
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+
+  label {
+    margin-bottom: 5px;
+    color: $texto-label;
+    font-size: 14px;
+  }
+
+  input, select {
+    padding: 10px;
+    background-color: $negro;
+    border: 1px solid $borde-claro;
+    color: white;
+    border-radius: 5px;
+
+    &:focus {
+      border-color: $acento;
+      outline: none;
+    }
+  }
+}
+
+.mensaje-error {
+  color: $error;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.input-error {
+  border-color: $error !important;
+}
+
+.campo-requerido {
+  color: $error;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+// landing
+.hero-container {
+  text-align: center;
+  padding: 100px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+
+  h1 {
+    font-size: 60px;
+    margin-bottom: 20px;
+  }
+
+  p {
+    color: $texto-gris;
+    font-size: 20px;
+    margin-bottom: 40px;
+    line-height: 1.5;
+  }
+}
+
+.info-cards {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding: 60px 20px;
+}
+
+.card {
+  width: 300px;
+  padding: 40px 20px;
+  @include card-oscura;
+  border-color: #1a1a1a;
+  text-align: center;
+}
+
+// boveda - toolbar
+.toolbar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  @include card-oscura;
+  padding: 15px;
+}
+
+.input-buscar, .select-filtro {
+  padding: 10px;
+  background-color: $negro;
+  border: 1px solid $borde-claro;
+  color: white;
+  border-radius: 5px;
+  flex: 1;
+}
+
+.btn-guardar {
+  background-color: $acento;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $acento-hover;
+  }
+}
+
+// grid de articulos
+.grid-articulos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-top: 20px;
+}
+
+.item-card {
+  @include card-oscura;
+  padding: 20px;
+  width: 280px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+
+  &:hover {
+    transform: translateY(-5px);
+    border-color: #444;
+  }
+
+  h3 {
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #999;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+
+  .info-extra {
+    color: #666;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  .botones-carta {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+  }
+}
+
+.precio-tag {
+  color: #fff;
+  font-weight: bold;
+  display: block;
+  margin-top: 15px;
+}
+
+.btn-eliminar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: $error;
+  cursor: pointer;
+  font-size: 16px;
+  z-index: 2;
+}
+
+// boton editar
+.btn-editar-carta {
+  background: none;
+  border: 1px solid #555;
+  color: #aaa;
+  padding: 4px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+
+  &:hover {
+    border-color: $acento;
+    color: $acento;
+  }
+}
+
+// formulario editar dentro de la carta
+.form-editar-carta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+
+  input {
+    padding: 6px;
+    background-color: #111;
+    border: 1px solid $borde-claro;
+    color: white;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .botones-editar {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.btn-guardar-editar {
+  background-color: $acento;
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-cancelar-editar {
+  background: none;
+  border: 1px solid #555;
+  color: #aaa;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+// boton vaciar
+.btn-vaciar {
+  background: none;
+  border: 1px solid $error;
+  color: $error;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover {
+    background-color: $error;
+    color: white;
+  }
+}
+
+// stats de la boveda
+.resumen-stats {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  @include card-oscura;
+  padding: 12px 20px;
+  text-align: center;
+  min-width: 120px;
+  border-radius: 8px;
+
+  .stat-numero {
+    font-size: 22px;
+    font-weight: bold;
+    display: block;
+  }
+
+  .stat-label {
+    color: $texto-gris;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+}
+
+// tabla del admin
+.tabla-admin {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+
+  th, td {
+    border: 1px solid $borde-claro;
+    padding: 15px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #111;
+    color: $texto-label;
+  }
+}
+
+// colores de categoria (los que siguen en el css por si acaso)
+.cat-sneakers { border-left: 3px solid $acento; }
+.cat-relojes { border-left: 3px solid #22c55e; }
+.cat-figuras { border-left: 3px solid #a855f7; }
+
+// admin stats
+.admin-resumen {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.admin-stat {
+  @include card-oscura;
+  padding: 20px 30px;
+  text-align: center;
+  flex: 1;
+
+  .numero {
+    font-size: 28px;
+    font-weight: bold;
+    display: block;
+    color: $acento;
+  }
+
+  .label {
+    color: $texto-gris;
+    font-size: 13px;
+    margin-top: 5px;
+  }
+}
+
+// footer
+.footer {
+  text-align: center;
+  padding: 30px 20px;
+  border-top: 1px solid $borde;
+  margin-top: 60px;
+  color: #555;
+  font-size: 13px;
+
+  span {
+    color: $texto-gris;
+  }
+}
+
+// fotos
+.imagen-articulo {
+  width: calc(100% + 40px);
+  margin: -20px -20px 10px -20px;
+  height: 180px;
+  object-fit: cover;
+}
+
+.imagen-placeholder {
+  width: 100%;
+  height: 100px;
+  background: #111;
+  border: 1px dashed $borde-claro;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+// toast
+.toast {
+  position: fixed;
+  top: 80px;
+  right: 30px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 2000;
+  font-size: 14px;
+}
+
+.toast-ok {
+  background: $exito-fondo;
+  color: #a7f3d0;
+  border: 1px solid $exito-borde;
+}
+
+.toast-error {
+  background: $error-fondo;
+  color: #fca5a5;
+  border: 1px solid #ef4444;
+}
+
+// spinner
+.spinner {
+  width: 35px;
+  height: 35px;
+  border: 3px solid $borde-claro;
+  border-top-color: $acento;
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes girar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// responsive
+@media (max-width: 768px) {
+  .nav-principal {
+    padding: 12px 15px;
+    gap: 10px;
+
+    .nav-logo a {
+      font-size: 16px;
+      letter-spacing: 2px;
+    }
+  }
+
+  .nav-links {
+    gap: 10px;
+
+    a {
+      font-size: 13px;
+    }
+  }
+
+  .btn-secundario, .btn-primario {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  .hero-container {
+    padding: 50px 15px;
+
+    h1 { font-size: 32px; }
+    p { font-size: 16px; }
+  }
+
+  .info-cards {
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 15px;
+    gap: 15px;
+  }
+
+  .card { width: 100%; }
+  .toolbar { flex-direction: column; gap: 10px; }
+  .grid-articulos { flex-direction: column; }
+  .item-card { width: 100%; }
+
+  .resumen-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-item { min-width: auto; }
+  .toolbar + div form { flex-direction: column; }
+
+  .modal-content {
+    margin: 15px;
+    padding: 25px;
+    max-width: 100%;
+  }
+
+  .tabla-admin { display: block; overflow-x: auto; }
+  .admin-resumen { flex-direction: column; gap: 10px; }
+
+  div[style*="padding: 50px"] {
+    padding: 20px !important;
+  }
+}
