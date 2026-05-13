@@ -21,6 +21,8 @@ export const Boveda = () => {
     const [categoriaPersonalizada, setCategoriaPersonalizada] = useState('');
     const [nuevoPrecio, setNuevoPrecio] = useState('');
     const [fotoSeleccionada, setFotoSeleccionada] = useState<File | null>(null);
+    const [nuevoAnio, setNuevoAnio] = useState(String(new Date().getFullYear()));
+    const [nuevaCondicion, setNuevaCondicion] = useState('Nuevo');
 
     // la categoria final es la personalizada si eligio "Otra"
     const categoriaFinal = nuevaCategoria === '__otra__'
@@ -38,8 +40,8 @@ export const Boveda = () => {
             nombre: nuevoNombre,
             marca: nuevaMarca,
             categoria: categoriaFinal,
-            anio: new Date().getFullYear(),
-            condicion: "Nuevo",
+            anio: Number(nuevoAnio),
+            condicion: nuevaCondicion,
             precio: Number(nuevoPrecio)
         }, fotoSeleccionada);
 
@@ -51,6 +53,8 @@ export const Boveda = () => {
             setNuevaCategoria('Sneakers');
             setCategoriaPersonalizada('');
             setFotoSeleccionada(null);
+            setNuevoAnio(String(new Date().getFullYear()));
+            setNuevaCondicion('Nuevo');
         }
     };
 
@@ -170,6 +174,20 @@ export const Boveda = () => {
                                         onChange={e => setCategoriaPersonalizada(e.target.value)} required />
                                 </div>
                             )}
+                            <div className="form-group">
+                                <label>Año</label>
+                                <input type="number" value={nuevoAnio}
+                                    onChange={e => setNuevoAnio(e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Condición</label>
+                                <select className="select-filtro" style={{ width: '100%' }}
+                                    value={nuevaCondicion} onChange={e => setNuevaCondicion(e.target.value)}>
+                                    <option value="Nuevo">Nuevo</option>
+                                    <option value="Usado">Usado</option>
+                                    <option value="Restaurado">Restaurado</option>
+                                </select>
+                            </div>
                             <div className="form-group">
                                 <label>Precio (MXN)</label>
                                 <input type="number" required min="1" value={nuevoPrecio}
