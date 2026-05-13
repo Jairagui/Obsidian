@@ -1,4 +1,3 @@
-// src/pages/Boveda.tsx
 import { useState } from 'react';
 import { useBoveda } from '../hooks/useBoveda';
 import { CartaArticulo } from '../components/CartaArticulo';
@@ -10,23 +9,35 @@ export const Boveda = () => {
         estaCargando, articulosFiltrados,
         borrarArticulo, agregarArticulo, editarArticulo,
         vaciarBoveda, totalEstimado,
-        conteoSneakers, conteoRelojes, conteoFiguras, mensaje, tipoMsg
+        categorias, conteoPorCategoria,
+        ordenarPor, setOrdenarPor,
+        mensaje, tipoMsg
     } = useBoveda();
 
     const [mostrarForm, setMostrarForm] = useState(false);
     const [nuevoNombre, setNuevoNombre] = useState('');
     const [nuevaMarca, setNuevaMarca] = useState('');
     const [nuevaCategoria, setNuevaCategoria] = useState('Sneakers');
+    const [categoriaPersonalizada, setCategoriaPersonalizada] = useState('');
     const [nuevoPrecio, setNuevoPrecio] = useState('');
     const [fotoSeleccionada, setFotoSeleccionada] = useState<File | null>(null);
+
+    // la categoria final es la personalizada si eligio "Otra"
+    const categoriaFinal = nuevaCategoria === '__otra__'
+        ? categoriaPersonalizada.trim()
+        : nuevaCategoria;
 
     const manejarSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (nuevaCategoria === '__otra__' && categoriaPersonalizada.trim() === '') {
+            return; // no dejar guardar sin categoria
+        }
+
         const ok = await agregarArticulo({
             nombre: nuevoNombre,
             marca: nuevaMarca,
-            categoria: nuevaCategoria,
+            categoria: categoriaFinal,
             anio: new Date().getFullYear(),
             condicion: "Nuevo",
             precio: Number(nuevoPrecio)
@@ -37,6 +48,8 @@ export const Boveda = () => {
             setNuevoNombre('');
             setNuevaMarca('');
             setNuevoPrecio('');
+            setNuevaCategoria('Sneakers');
+            setCategoriaPersonalizada('');
             setFotoSeleccionada(null);
         }
     };
@@ -53,10 +66,14 @@ export const Boveda = () => {
         }
     };
 
+    // las categorias por defecto + las que el usuario haya creado
+    const categoriasDisponibles = ['Sneakers', 'Relojes', 'Figuras',
+        ...categorias.filter(c => !['Sneakers', 'Relojes', 'Figuras'].includes(c))
+    ];
+
     return (
         <div style={{ padding: '50px' }}>
 
-            {/* mensaje verde si esta bien, rojo si hay error */}
             {mensaje && (
                 <div className={tipoMsg === 'ok' ? 'toast toast-ok' : 'toast toast-error'}>
                     {mensaje}
@@ -71,34 +88,34 @@ export const Boveda = () => {
                 </div>
             </div>
 
-            {/* los contadores de arriba */}
+            {/* contadores dinamicos */}
             <div className="resumen-stats">
                 <div className="stat-item">
                     <span className="stat-numero">{articulos.length}</span>
                     <span className="stat-label">Total</span>
                 </div>
-                <div className="stat-item">
-                    <span className="stat-numero" style={{color: '#2563eb'}}>{conteoSneakers}</span>
-                    <span className="stat-label">Sneakers</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-numero" style={{color: '#22c55e'}}>{conteoRelojes}</span>
-                    <span className="stat-label">Relojes</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-numero" style={{color: '#a855f7'}}>{conteoFiguras}</span>
-                    <span className="stat-label">Figuras</span>
-                </div>
+                {categorias.map(cat => (
+                    <div className="stat-item" key={cat}>
+                        <span className="stat-numero">{conteoPorCategoria[cat]}</span>
+                        <span className="stat-label">{cat}</span>
+                    </div>
+                ))}
             </div>
 
             <div className="toolbar">
-                <input type="text" placeholder="Buscar tenis o figura..." className="input-buscar"
+                <input type="text" placeholder="Buscar por nombre o marca..." className="input-buscar"
                     value={busqueda} onChange={e => setBusqueda(e.target.value)} />
                 <select className="select-filtro" value={categoriaSelect} onChange={e => setCategoriaSelect(e.target.value)}>
                     <option value="Todas">Todas las categorías</option>
-                    <option value="Sneakers">Sneakers</option>
-                    <option value="Relojes">Relojes</option>
-                    <option value="Figuras">Figuras</option>
+                    {categoriasDisponibles.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                </select>
+                <select className="select-filtro" value={ordenarPor} onChange={e => setOrdenarPor(e.target.value)}>
+                    <option value="">Sin orden</option>
+                    <option value="nombre">Nombre A-Z</option>
+                    <option value="precio-asc">Precio menor</option>
+                    <option value="precio-desc">Precio mayor</option>
                 </select>
                 <button className="btn-primario" onClick={() => setMostrarForm(!mostrarForm)}>
                     {mostrarForm ? 'Cancelar' : '+ Añadir'}
@@ -106,25 +123,55 @@ export const Boveda = () => {
                 <button className="btn-vaciar" onClick={manejarVaciar}>Vaciar todo</button>
             </div>
 
+            {/* modal para agregar articulo */}
             {mostrarForm && (
-                <div style={{ background: '#111', padding: '20px', borderRadius: '10px', border: '1px solid #333', marginBottom: '30px' }}>
-                    <h3 style={{ marginBottom: '15px' }}>Registrar nuevo</h3>
-                    <form onSubmit={manejarSubmit} style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                        <input type="text" placeholder="Nombre" className="input-buscar" required
-                            value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} />
-                        <input type="text" placeholder="Marca" className="input-buscar" required
-                            value={nuevaMarca} onChange={e => setNuevaMarca(e.target.value)} />
-                        <select className="select-filtro" value={nuevaCategoria} onChange={e => setNuevaCategoria(e.target.value)}>
-                            <option value="Sneakers">Sneakers</option>
-                            <option value="Relojes">Relojes</option>
-                            <option value="Figuras">Figuras</option>
-                        </select>
-                        <input type="number" placeholder="Precio" className="input-buscar" required min="1"
-                            value={nuevoPrecio} onChange={e => setNuevoPrecio(e.target.value)} />
-                        <input type="file" accept="image/*" className="input-buscar"
-                            onChange={e => setFotoSeleccionada(e.target.files?.[0] || null)} />
-                        <button type="submit" className="btn-guardar">Guardar</button>
-                    </form>
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <button className="btn-cerrar" onClick={() => setMostrarForm(false)}>X</button>
+                        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Registrar Artículo</h2>
+                        <form onSubmit={manejarSubmit}>
+                            <div className="form-group">
+                                <label>Nombre</label>
+                                <input type="text" required value={nuevoNombre}
+                                    onChange={e => setNuevoNombre(e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Marca</label>
+                                <input type="text" required value={nuevaMarca}
+                                    onChange={e => setNuevaMarca(e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Categoría</label>
+                                <select className="select-filtro" style={{ width: '100%' }}
+                                    value={nuevaCategoria} onChange={e => setNuevaCategoria(e.target.value)}>
+                                    {categoriasDisponibles.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                    <option value="__otra__">+ Otra categoría</option>
+                                </select>
+                            </div>
+                            {nuevaCategoria === '__otra__' && (
+                                <div className="form-group">
+                                    <label>Nueva categoría</label>
+                                    <input type="text" placeholder="Ej: Cartas, Vinilos, Comics..."
+                                        value={categoriaPersonalizada}
+                                        onChange={e => setCategoriaPersonalizada(e.target.value)} required />
+                                </div>
+                            )}
+                            <div className="form-group">
+                                <label>Precio (MXN)</label>
+                                <input type="number" required min="1" value={nuevoPrecio}
+                                    onChange={e => setNuevoPrecio(e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Foto (opcional)</label>
+                                <input type="file" accept="image/*"
+                                    onChange={e => setFotoSeleccionada(e.target.files?.[0] || null)} />
+                            </div>
+                            <button type="submit" className="btn-primario"
+                                style={{ width: '100%', marginTop: '10px' }}>Guardar</button>
+                        </form>
+                    </div>
                 </div>
             )}
 

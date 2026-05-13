@@ -198,23 +198,43 @@ export const useBoveda = () => {
 
     // filtros
     const articulosFiltrados = articulos.filter((item) => {
-        const coincideNombre = item.nombre.toLowerCase().includes(busqueda.toLowerCase());
+        const textoBusqueda = busqueda.toLowerCase();
+        // ahora tambien busca por marca
+        const coincideTexto = item.nombre.toLowerCase().includes(textoBusqueda) ||
+                              item.marca.toLowerCase().includes(textoBusqueda);
         const coincideCategoria = categoriaSelect === 'Todas' || item.categoria === categoriaSelect;
-        return coincideNombre && coincideCategoria;
+        return coincideTexto && coincideCategoria;
     });
 
     const totalEstimado = articulosFiltrados.reduce((ac, item) => ac + item.precio, 0);
-    const conteoSneakers = articulos.filter(a => a.categoria === 'Sneakers').length;
-    const conteoRelojes = articulos.filter(a => a.categoria === 'Relojes').length;
-    const conteoFiguras = articulos.filter(a => a.categoria === 'Figuras').length;
+
+    // sacamos las categorias de los articulos que tiene el usuario
+    const categorias = [...new Set(articulos.map(a => a.categoria))];
+
+    // conteo por categoria
+    const conteoPorCategoria: Record<string, number> = {};
+    categorias.forEach(cat => {
+        conteoPorCategoria[cat] = articulos.filter(a => a.categoria === cat).length;
+    });
+
+    // para ordenar
+    const [ordenarPor, setOrdenarPor] = useState('');
+
+    const articulosOrdenados = [...articulosFiltrados].sort((a, b) => {
+        if (ordenarPor === 'precio-asc') return a.precio - b.precio;
+        if (ordenarPor === 'precio-desc') return b.precio - a.precio;
+        if (ordenarPor === 'nombre') return a.nombre.localeCompare(b.nombre);
+        return 0;
+    });
 
     return {
         articulos, setArticulos, busqueda, setBusqueda,
         categoriaSelect, setCategoriaSelect,
-        estaCargando, articulosFiltrados,
+        estaCargando, articulosFiltrados: articulosOrdenados,
         borrarArticulo, agregarArticulo, editarArticulo,
         vaciarBoveda, totalEstimado,
-        conteoSneakers, conteoRelojes, conteoFiguras,
+        categorias, conteoPorCategoria,
+        ordenarPor, setOrdenarPor,
         mensaje, tipoMsg
     };
 };
