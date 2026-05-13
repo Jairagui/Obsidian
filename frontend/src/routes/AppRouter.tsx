@@ -61,6 +61,7 @@ export const AppRouter = () => {
                 headers: headersConToken()
             });
             if (resp.ok) {
+                setVerConfirmLogout(false);
                 cerrarSesionCtx();
                 navegar('/');
             }
