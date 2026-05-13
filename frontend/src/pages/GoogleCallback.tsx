@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { guardarSesion } from '../helpers/authHelper';
+import { useAuth } from '../context/AuthContext';
 
 export const GoogleCallback = () => {
     const navegar = useNavigate();
     const [params] = useSearchParams();
+    const { iniciarSesionCtx } = useAuth();
 
     useEffect(() => {
         const token = params.get('token');
@@ -13,14 +14,14 @@ export const GoogleCallback = () => {
         const id = params.get('id');
 
         if (token) {
-            guardarSesion(token, { id, name, role });
+            // usamos el context para que la UI se actualice sola
+            iniciarSesionCtx(token, { id, name, role });
 
             if (role === 'admin') {
                 navegar('/admin');
             } else {
                 navegar('/boveda');
             }
-            window.location.reload();
         } else {
             navegar('/');
         }
